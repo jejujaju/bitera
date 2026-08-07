@@ -359,13 +359,14 @@ window.daftarUser = async function() {
   if(!nama || !email || !pass) return alert("Isi semua dulu");
   if(!document.getElementById('setujuTOS').checked) return alert("Setuju TOS dulu"); 
   if(pass.length < 6) return alert("Password minimal 6 karakter");
-const { data, error } = await supabase.auth.signUp({
-  email: email,
-  password: password,
-  options: {
-    data: { nama: nama } // nama dari input form
-  }
-}); 
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: pass, // <- UDAH DIBENERIN
+    options: {
+      data: { nama: nama }
+    }
+  }); 
   
   if(error) return alert('Gagal Daftar Auth: ' + error.message); 
   
@@ -380,7 +381,7 @@ const { data, error } = await supabase.auth.signUp({
 
   if(dbError) return alert('Gagal Simpan DB: ' + dbError.message);
   
-  alert('Daftar berhasil!');
+  alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar'); 
 }
 window.loginUser = async function() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value; const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); if(error) return alert('Gagal: ' + error.message); userLogin = data.user; let { data:u } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(!u){ await supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0 }); u = {saldo: 0}; } saldoSekarang = u?.saldo || 0; updateSaldoUI(); updateUI(true); closeModal('login'); }
