@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -422,9 +423,7 @@ async function loadJobs(){
 // 2. GANTI AMBILJOB JADI MASUK KE TABEL LAMARAN
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
-    job_id: jobId,
-    pelamar_id: userLogin.id,
-    status: 'menunggu'
+    job_id: jobId, pelamar_id: userLogin.id, status: 'menunggu'
   });
   if(error) return alert('Kamu udah lamar job ini');
   alert("Lamaran terkirim. Tunggu konfirmasi dari pemberi job.");
@@ -448,58 +447,51 @@ window.lihatPelamar = async function(jobId){
 
 // 4. FUNGSI BARU: A PILIH 1 PEKERJA
 window.pilihPekerja = async function(jobId, pelamarId){
-  await supabase.from('jobs').update({
-    status:'dikerjakan', 
-    diambil_oleh: pelamarId
-  }).eq('id', jobId);
-  await supabase.from('job_applications').update({status:'ditolak'}).eq('job_id', jobId).neq('pelamar_id', pelamarId);
-  alert("Pekerja terpilih. Silahkan hubungi via WA");
+  const { data, error } = await supabase.functions.invoke('pilih-pekerja', {
+    body: { job_id: jobId, pelamar_id: pelamarId }
+  });
+  if(error) return alert(error.message);
+  alert(data.message);
   loadJobs();
 }
 
 // 5. FUNGSI BARU: PEKERJA KLIK SELESAI
 window.selesaiKerja = async function(jobId){
   const bukti = prompt("Paste link bukti hasil kerja: Google Drive/Imgur");
-  await supabase.from('jobs').update({
-    status:'menunggu_konfirmasi',
-    bukti_url: bukti
-  }).eq('id', jobId);
-  alert("Bukti terkirim. Tunggu konfirmasi pemberi job");
+  if(!bukti) return;
+  const { data, error } = await supabase.functions.invoke('selesai-kerja', {
+    body: { job_id: jobId, bukti_url: bukti }
+  });
+  if(error) return alert(error.message);
+  alert(data.message);
   loadJobs();
 }
+
+
 
 
 let pekerjaRatingId = ''; // TAMBAH VARIABEL INI DI ATAS SAMA BARIS `let channelChat`
 // 6. FUNGSI BARU: A KONFIRMASI + KASIH RATING
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   if(!confirm("Yakin pekerjaan sudah selesai? Koin akan ditransfer")) return;
-
-  const {data: job} = await supabase.from('jobs').select('harga').eq('id', jobId).single();
-  const {data: pekerja} = await supabase.from('users').select('saldo').eq('id', pekerjaId).single();
-
-  // Tambah saldo ke pekerja
-  await supabase.from('users').update({saldo: pekerja.saldo + job.harga}).eq('id', pekerjaId);
-  await supabase.from('jobs').update({status:'selesai'}).eq('id', jobId);
-
+  skorRating = 0; // reset
   pekerjaRatingId = pekerjaId;
+  ratingJobId = jobId; // simpan buat dikirim bareng rating
+  
   openModal('ratingModal');
-  document.getElementById('ratingJobJudul').innerText = "Kasih rating untuk pekerja ini";
-  document.getElementById('bintangWrap').innerHTML = [1,2,3,4,5].map(i=>`<span class="bintang" onclick="skorRating=${i}">★</span>`).join('');
+  document.getElementById('bintangWrap').innerHTML = [1,2,3,4,5].map(i=>`<span class="bintang" onclick="skorRating=${i}; this.parentElement.querySelectorAll('.bintang').forEach((b,idx)=> b.classList.toggle('active', idx<i))">★</span>`).join('');
 }
 // 7. KIRIM RATING
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
-  
-  const {data: pekerja} = await supabase.from('users').select('total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-  
-  await supabase.from('users').update({
-    total_rating: pekerja.total_rating + skorRating,
-    jumlah_rating: pekerja.jumlah_rating + 1
-  }).eq('id', pekerjaRatingId);
-  
+  const { data, error } = await supabase.functions.invoke('konfirmasi-selesai', {
+    body: { job_id: ratingJobId, pekerja_id: pekerjaRatingId, rating: skorRating }
+  });
+  if(error) return alert(error.message);
   closeModal('ratingModal');
-  alert("Rating terkirim!");
-  skorRating = 0;
+  alert(data.message);
+  loadJobs();
+  loadMyProfile();
 }
 async function loadPenyedia(){ 
   const { data } = await supabase.from('users').select('*'); 
