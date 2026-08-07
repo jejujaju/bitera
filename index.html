@@ -476,16 +476,34 @@ window.lihatPelamar = async function(jobId){
   const { data: pelamar } = await supabase.from('job_applications')
     .select('*, users(*)').eq('job_id', jobId).eq('status','menunggu');
   
-  let html = `<h3>Daftar Pelamar</h3>`;
-  pelamar.forEach(p => {
-    html += `<div class="card">
-      <img src="${p.users.foto}" style="width:50px;border-radius:50%"> <b>${p.users.nama}</b>
-      <button class="btn btn-sukses" onclick="pilihPekerja('${jobId}','${p.pelamar_id}')">PILIH DIA</button>
-    </div>`
-  });
+  let html = `<button class="btn btn-batal" onclick="loadJobs()">⬅️ KEMBALI KE LOWONGAN</button><h3>Daftar Pelamar</h3>`;
+  
+  if(!pelamar || pelamar.length === 0) {
+    html += `<p class="card">Belum ada yg lamar job ini</p>`;
+  } else {
+    pelamar.forEach(p => {
+      const wa = p.users.no_wa || '';
+      html += `<div class="card">
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px">
+          <img src="${p.users.foto || 'https://ui-avatars.com/api/?name='+p.users.nama}" 
+               style="width:60px;height:60px;border-radius:50%;cursor:pointer" 
+               onclick="lihatProfilOrang('${p.users.id}')">
+          <div>
+            <h3 style="cursor:pointer; color:var(--accent); margin:0" onclick="lihatProfilOrang('${p.users.id}')">${p.users.nama}</h3>
+            <p style="margin:5px 0">⭐ ${p.users.jumlah_rating > 0 ? (p.users.total_rating/p.users.jumlah_rating).toFixed(1) : '0.0'}</p>
+            <p style="margin:0; font-size:13px; color:gray">${p.users.skill || ''}</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px">
+          <button class="btn btn-sukses" style="flex:1" onclick="pilihPekerja('${jobId}','${p.pelamar_id}')">PILIH DIA</button>
+          ${wa ? `<a href="https://wa.me/${wa}" target="_blank" class="btn" style="flex:1; background:#25D366">📱 WA</a>` : ''}
+          <button class="btn" style="flex:1" onclick="bukaChat('${p.users.id}')">💬 CHAT</button>
+        </div>
+      </div>`
+    });
+  }
   document.getElementById('daftarJob').innerHTML = html;
 }
-
 // 4. FUNGSI BARU: A PILIH 1 PEKERJA
 window.pilihPekerja = async function(jobId, pelamarId){
   const { error } = await supabase.from('jobs').update({
