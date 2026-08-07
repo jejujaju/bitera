@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -323,9 +324,12 @@ document.getElementById('uploadCover').onchange = async (e) => {
     alert('Lagi compress cover...')
     const compressedFile = await compressImage(file, 1200)
 
-    const url = await uploadKeStorage(compressedFile, 'covers', `public/${userLogin.id}/cover.jpg`);
+    const timestamp = Date.now(); // biar ga ke-cache
+    const path = `${userLogin.id}/cover.jpg?v=${timestamp}`; // <-- HAPUS "public/"
+
+    const url = await uploadKeStorage(compressedFile, 'covers', path);
     await supabase.from('users').update({cover: url}).eq('id', userLogin.id);
-    document.getElementById('myCover').src = url;
+    document.getElementById('myCover').src = url + '&t=' + timestamp; // <-- TAMBAH &t biar langsung ganti
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
   } catch(err) {
     alert('Gagal compress: ' + err)
