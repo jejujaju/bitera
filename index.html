@@ -359,12 +359,13 @@ window.daftarUser = async function() {
   if(!nama || !email || !pass) return alert("Isi semua dulu");
   if(!document.getElementById('setujuTOS').checked) return alert("Setuju TOS dulu"); 
   if(pass.length < 6) return alert("Password minimal 6 karakter");
-
-  const { data, error } = await supabase.auth.signUp({ 
-    email, 
-    password: pass, 
-    options: { data: { nama: nama } }
-  }); 
+const { data, error } = await supabase.auth.signUp({
+  email: email,
+  password: password,
+  options: {
+    data: { nama: nama } // nama dari input form
+  }
+}); 
   
   if(error) return alert('Gagal Daftar Auth: ' + error.message); 
   
@@ -393,15 +394,12 @@ window.buatPost = async function() {
   const noWa = document.getElementById('noWaPost').value; 
   if(!judul ||!hadiah) return alert("Isi semua");
 
-  // INI DIHAPUS: await supabase.from('users').update({saldo: saldoSekarang - hadiah})...
-  
-  // GANTI JADI PANGGIL FUNCTION
   const { data, error } = await supabase.functions.invoke('post-job', {
     body: { judul, deskripsi, harga: hadiah, no_wa: noWa }
   });
   if(error) return alert(error.message);
 
-  alert('Job diposting! Saldo: ' + data.saldo_baru);
+  alert('Job diposting! Saldo baru: ' + data.saldo_baru);
   saldoSekarang = data.saldo_baru;
   updateSaldoUI(); 
   closeModal('post'); 
