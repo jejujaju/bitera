@@ -305,16 +305,18 @@ document.getElementById('uploadFoto').onchange = async (e) => {
 
   try {
     alert('Lagi compress foto...')
-  const compressedFile = await compressImage(file, 800)
-
-    const url = await uploadKeStorage(compressedFile, 'avatars', `public/${userLogin.id}/avatar.jpg`);
+    const compressedFile = await compressImage(file, 800)
+    const timestamp = Date.now();
+    const path = `${userLogin.id}/avatar.jpg?v=${timestamp}`;
+    const url = await uploadKeStorage(compressedFile, 'avatars', path);
     await supabase.from('users').update({foto: url}).eq('id', userLogin.id);
-    document.getElementById('myFoto').src = url;
+    document.getElementById('myFoto').src = url + '&t=' + timestamp;
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
   } catch(err) {
     alert('Gagal compress: ' + err)
   }
-}
+} // <-- TAMBAH KURUNG TUTUP INI
+
 document.getElementById('uploadCover').onchange = async (e) => {
   if(!userLogin) return;
   const file = e.target.files[0];
@@ -407,15 +409,22 @@ window.buatPost = async function() {
   const hadiah = parseInt(document.getElementById('hadiahPost').value); 
   const noWa = document.getElementById('noWaPost').value; 
   if(!judul ||!hadiah) return alert("Isi semua");
+  if(saldoSekarang < hadiah) return alert("Saldo tidak cukup");
 
-  const { data, error } = await supabase.functions.invoke('post-job', {
-    body: { judul, deskripsi, harga: hadiah, no_wa: noWa }
+  // Potong saldo
+  const saldoBaru = saldoSekarang - hadiah;
+  const { error: saldoErr } = await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
+  if(saldoErr) return alert(saldoErr.message);
+  
+  // Insert job
+  const { error } = await supabase.from('jobs').insert({
+    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'
   });
   if(error) return alert(error.message);
 
-  alert('Job diposting! Saldo baru: ' + data.saldo_baru);
-  saldoSekarang = data.saldo_baru;
+  saldoSekarang = saldoBaru;
   updateSaldoUI(); 
+  alert('Job diposting! Saldo baru: ' + saldoBaru);
   closeModal('post'); 
   loadJobs(); 
 }
@@ -479,23 +488,23 @@ window.lihatPelamar = async function(jobId){
 
 // 4. FUNGSI BARU: A PILIH 1 PEKERJA
 window.pilihPekerja = async function(jobId, pelamarId){
-  const { data, error } = await supabase.functions.invoke('pilih-pekerja', {
-    body: { job_id: jobId, pelamar_id: pelamarId }
-  });
+  const { error } = await supabase.from('jobs').update({
+    status: 'dikerjakan', diambil_oleh: pelamarId
+  }).eq('id', jobId);
   if(error) return alert(error.message);
-  alert(data.message);
+  await supabase.from('job_applications').update({status:'diterima'}).eq('job_id', jobId).eq('pelamar_id', pelamarId);
+  alert("Pekerja berhasil dipilih");
   loadJobs();
 }
-
 // 5. FUNGSI BARU: PEKERJA KLIK SELESAI
 window.selesaiKerja = async function(jobId){
   const bukti = prompt("Paste link bukti hasil kerja: Google Drive/Imgur");
   if(!bukti) return;
-  const { data, error } = await supabase.functions.invoke('selesai-kerja', {
-    body: { job_id: jobId, bukti_url: bukti }
-  });
+  const { error } = await supabase.from('jobs').update({
+    status: 'menunggu_konfirmasi', bukti_url: bukti
+  }).eq('id', jobId);
   if(error) return alert(error.message);
-  alert(data.message);
+  alert("Bukti terkirim. Tunggu konfirmasi pemberi job");
   loadJobs();
 }
 
@@ -516,12 +525,19 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 // 7. KIRIM RATING
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
-  const { data, error } = await supabase.functions.invoke('konfirmasi-selesai', {
-    body: { job_id: ratingJobId, pekerja_id: pekerjaRatingId, rating: skorRating }
-  });
-  if(error) return alert(error.message);
+  const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
+  const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+
+  await supabase.from('users').update({
+    saldo: pekerja.saldo + job.harga,
+    total_rating: pekerja.total_rating + skorRating,
+    jumlah_rating: pekerja.jumlah_rating + 1
+  }).eq('id', pekerjaRatingId);
+
+  await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+
   closeModal('ratingModal');
-  alert(data.message);
+  alert("Pembayaran & Rating terkirim!");
   loadJobs();
   loadMyProfile();
 }
@@ -547,7 +563,18 @@ async function loadPenyedia(){
     }
   }) 
 }
-async function loadVideos(){ document.getElementById('daftarVideo').innerHTML = '<p>Fitur Video</p>'; }
+async function loadVideos(){ 
+  const { data } = await supabase.from('videos').select('*, users(nama)').order('created_at', {ascending:false});
+  const container = document.getElementById('daftarVideo'); container.innerHTML = '';
+  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada video</p>';
+  data.forEach(v=>{
+    container.innerHTML += `<div class="card">
+      <h3>${v.judul}</h3>
+      <p>Oleh: ${v.users.nama}</p>
+      <iframe src="${v.link}" frameborder="0" allowfullscreen style="width:100%; height:200px; border-radius:10px"></iframe>
+    </div>`
+  })
+}
 async function loadMarket(){ document.getElementById('daftarMarket').innerHTML = '<p>Belum ada produk</p>'; }
 
 async function loadMyProfile(){ if(!userLogin) return; const {data} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(data){ document.getElementById('myNama').innerText = data.nama; document.getElementById('mySkill').innerText = data.skill||'-'; document.getElementById('myBio').innerText = data.bio||'-'; document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; document.getElementById('myWa').innerText = data.no_wa||'-'; document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; document.getElementById('mySekolah').innerText = data.sekolah||'-'; document.getElementById('myYoutube').innerText = data.youtube||'-'; const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; document.getElementById('myRating').innerText = `⭐ ${rating}`; document.getElementById('editNama').value = data.nama; document.getElementById('editSkill').value = data.skill || ''; document.getElementById('editBio').value = data.bio || ''; document.getElementById('editNoWa').value = data.no_wa || ''; document.getElementById('editTgl').value = data.tanggal_lahir || ''; document.getElementById('editSekolah').value = data.sekolah || ''; document.getElementById('editYoutube').value = data.youtube || ''; loadTemanDiProfil(); } }
