@@ -385,8 +385,28 @@ window.daftarUser = async function() {
 window.loginUser = async function() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value; const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); if(error) return alert('Gagal: ' + error.message); userLogin = data.user; let { data:u } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(!u){ await supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0 }); u = {saldo: 0}; } saldoSekarang = u?.saldo || 0; updateSaldoUI(); updateUI(true); closeModal('login'); }
 window.logout = async function() { await supabase.auth.signOut(); location.reload(); }
 
-window.buatPost = async function() { if(!userLogin) return alert("Login dulu"); const judul = document.getElementById('judulPost').value; const deskripsi = document.getElementById('deskripsiPost').value; const hadiah = parseInt(document.getElementById('hadiahPost').value); const noWa = document.getElementById('noWaPost').value; if(!judul ||!hadiah) return alert("Isi semua"); if(saldoSekarang < hadiah) return alert("Saldo kurang"); await supabase.from('users').update({saldo: saldoSekarang - hadiah}).eq('id', userLogin.id); saldoSekarang -= hadiah; updateSaldoUI(); await supabase.from('jobs').insert({user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'}); alert('Job diposting!'); closeModal('post'); loadJobs(); }
+window.buatPost = async function() { 
+  if(!userLogin) return alert("Login dulu"); 
+  const judul = document.getElementById('judulPost').value; 
+  const deskripsi = document.getElementById('deskripsiPost').value; 
+  const hadiah = parseInt(document.getElementById('hadiahPost').value); 
+  const noWa = document.getElementById('noWaPost').value; 
+  if(!judul ||!hadiah) return alert("Isi semua");
 
+  // INI DIHAPUS: await supabase.from('users').update({saldo: saldoSekarang - hadiah})...
+  
+  // GANTI JADI PANGGIL FUNCTION
+  const { data, error } = await supabase.functions.invoke('post-job', {
+    body: { judul, deskripsi, harga: hadiah, no_wa: noWa }
+  });
+  if(error) return alert(error.message);
+
+  alert('Job diposting! Saldo: ' + data.saldo_baru);
+  saldoSekarang = data.saldo_baru;
+  updateSaldoUI(); 
+  closeModal('post'); 
+  loadJobs(); 
+}
 // 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
 async function loadJobs(){ 
   const { data } = await supabase.from('jobs').select('*, users(nama, foto)').order('created_at', {ascending:false}); 
