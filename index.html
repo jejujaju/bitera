@@ -553,17 +553,30 @@ window.pilihPekerja = async function(jobId, pelamarId){
 }
 // 5. FUNGSI BARU: PEKERJA KLIK SELESAI
 window.selesaiKerja = async function(jobId){
-  const bukti = prompt("Paste link bukti hasil kerja: Google Drive/Imgur");
-  if(!bukti) return;
-  const { error } = await supabase.from('jobs').update({
-    status: 'menunggu_konfirmasi', bukti_url: bukti
-  }).eq('id', jobId);
-  if(error) return alert(error.message);
-  alert("Bukti terkirim. Tunggu konfirmasi pemberi job");
-  loadJobs();
+  jobSelesaiId = jobId;
+  document.getElementById('previewBukti').style.display = 'none';
+  document.getElementById('inputBukti').value = '';
+  openModal('selesaiModal');
 }
 
+window.kirimBukti = async function(){
+  const file = document.getElementById('inputBukti').files[0];
+  if(!file) return alert("Upload bukti dulu");
 
+  const filePath = `${jobSelesaiId}/${userLogin.id}-${Date.now()}.jpg`;
+  const { error: upErr } = await supabase.storage.from('bukti-kerja').upload(file, { upsert: true }); // <-- BUAT BUCKET 'bukti-kerja' DULU
+  if(upErr) return alert('Gagal upload: ' + upErr.message);
+  const { data } = supabase.storage.from('bukti-kerja').getPublicUrl(filePath);
+
+  const { error } = await supabase.from('jobs').update({
+    status: 'menunggu_konfirmasi', bukti_url: data.publicUrl
+  }).eq('id', jobSelesaiId);
+  if(error) return alert(error.message);
+
+  alert("Bukti terkirim. Tunggu konfirmasi pemberi job");
+  closeModal('selesaiModal');
+  loadJobs();
+}
 
 
 let pekerjaRatingId = ''; // TAMBAH VARIABEL INI DI ATAS SAMA BARIS `let channelChat`
@@ -580,19 +593,34 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 // 7. KIRIM RATING
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
+
+  const ADMIN_ID = "de42b2d3-94cc-4b8f-b7b9-b7c056bd96b3"; // <-- ID ADMIN KAMU
+
   const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
   const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+  const { data: admin } = await supabase.from('users').select('saldo').eq('id', ADMIN_ID).single();
 
+  const total = job.harga;
+  const adminCut = Math.ceil(total * 0.16); // 16%
+  const pekerjaDapat = total - adminCut; // 84%
+
+  // 1. Transfer ke pekerja 84%
   await supabase.from('users').update({
-    saldo: pekerja.saldo + job.harga,
+    saldo: pekerja.saldo + pekerjaDapat,
     total_rating: pekerja.total_rating + skorRating,
     jumlah_rating: pekerja.jumlah_rating + 1
   }).eq('id', pekerjaRatingId);
 
+  // 2. Transfer ke admin 16%
+  await supabase.from('users').update({
+    saldo: admin.saldo + adminCut
+  }).eq('id', ADMIN_ID);
+
+  // 3. Tutup job
   await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
 
   closeModal('ratingModal');
-  alert("Pembayaran & Rating terkirim!");
+  alert(`Pembayaran Selesai!\nPekerja dapat: ${pekerjaDapat} Koin\nAdmin dapat: ${adminCut} Koin`);
   loadJobs();
   loadMyProfile();
 }
