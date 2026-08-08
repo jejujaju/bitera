@@ -423,10 +423,10 @@ window.loginUser = async function() {
   
   saldoSekarang = u?.saldo || 0; 
   updateSaldoUI(); 
-  updateUI(u?.is_admin); // <-- langsung lempar true/false
+  updateUI(u?.is_admin); 
+  loadMyProfile(); // <-- TAMBAH INI
   closeModal('login'); 
 }
-
 function updateUI(isAdmin) { 
   const menuBtn = document.getElementById('menuBtn'); 
   if(userLogin){ 
@@ -911,7 +911,7 @@ supabase.auth.getSession().then(({ data: { session }}) => {
       if(data){
         saldoSekarang = data.saldo || 0;
         updateSaldoUI();
-        updateUI(data.is_admin); 
+       updateUI(data.is_admin === true); // <-- KASIH === true
         loadMyProfile(); // langsung load profil pas login
       }
       else { 
