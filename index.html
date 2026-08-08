@@ -81,7 +81,8 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
       <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥 TEMAN <span id="badgeTeman" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬 CHAT <span id="badgeChat" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤 PROFIL</button>
-      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
+<button class="btn-sm btn-menu" id="btnAdmin" style="display:none" onclick="showPage('adminPage',this)">⚙️ ADMIN</button> 
+<button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
@@ -186,6 +187,16 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="uploadVideo"><div class="modal-content"><h2>TAMBAH VIDEO</h2><input class="input" id="judulVideo" placeholder="Judul"><input class="input" id="linkVideo" placeholder="Link Youtube Embed"><button class="btn" onclick="simpanVideo()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('uploadVideo')">TUTUP</button></div></div>
 
 <footer>bitera.vercel.app 2026</footer>
+
+<div id="adminPage" class="container" style="display:none">
+  <h2>⚙️ DASHBOARD ADMIN</h2>
+  <div class="card">
+    <h3>Selamat datang Admin</h3>
+    <p>UUID: de42b2d3-94cc-4b8f-b7b9-b7c056bd96b3</p>
+    <p>Nanti disini buat atur user, job, laporan dll</p>
+  </div>
+</div>
+
 </div>
 
 <audio id="notifSound" src="https://cdn.pixabay.com/audio/2025/04/02/audio_3c2b9c1e5a.mp3"></audio>
@@ -238,10 +249,15 @@ async function compressImage(file, maxSize = 800) { // TAMBAH PARAMETER
   });
 }
 let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null;
-
+// TAMBAH INI
+const ADMIN_UUID = 'de42b2d3-94cc-4b8f-b7b9-b7c056bd96b3';
+function isAdmin(user) {
+  if (!user) return false;
+  return user.id === ADMIN_UUID;
+}
 window.showPage = function(pageId, el){
     document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-    ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage'].forEach(id=>document.getElementById(id).style.display='none');
+    ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage'].forEach(id=>document.getElementById(id).style.display='none'); // <-- TAMBAH adminPage
     document.getElementById(pageId).style.display='block';
     if(el) el.classList.add('active');
     if(pageId==='jobsPage') loadJobs();
@@ -251,11 +267,26 @@ window.showPage = function(pageId, el){
     if(pageId==='marketPage') loadMarket();
     if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); }
     if(pageId==='chatPage'){ resetNotifChat(); loadDaftarChat(); }
+    if(pageId==='adminPage'){ loadDataAdmin(); } // <-- TAMBAH INI buat load data admin
 }
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
 function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
-function updateUI(isLogin) { const menuBtn = document.getElementById('menuBtn'); if(isLogin){ menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`; } else { menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`; } }
+function updateUI(isLogin) { 
+  const menuBtn = document.getElementById('menuBtn'); 
+  if(isLogin){ 
+    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`; 
+    // TAMBAH INI: cek kalau admin, munculin tombol
+    if(isAdmin(userLogin)){
+      document.getElementById('btnAdmin').style.display = 'inline-block';
+    } else {
+      document.getElementById('btnAdmin').style.display = 'none';
+    }
+  } else { 
+    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
+    document.getElementById('btnAdmin').style.display = 'none';
+  } 
+}
 function updateBadgeChat(){ const badge = document.getElementById('badgeChat'); badge.style.display = jumlahNotifChat > 0? 'flex' : 'none'; badge.innerText = jumlahNotifChat; }
 function updateBadgeTeman(){ const badge = document.getElementById('badgeTeman'); badge.style.display = jumlahNotifTeman > 0? 'flex' : 'none'; badge.innerText = jumlahNotifTeman; }
 function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }
@@ -595,6 +626,39 @@ async function loadVideos(){
 }
 async function loadMarket(){ document.getElementById('daftarMarket').innerHTML = '<p>Belum ada produk</p>'; }
 
+async function loadDataAdmin(){
+  console.log("Halaman Admin Dibuka");
+  const container = document.getElementById('adminPage');
+  
+  // Ambil semua user
+  const { data: users } = await supabase.from('users').select('*').order('created_at', {ascending:false});
+  
+  let html = `<h2>⚙️ DASHBOARD ADMIN</h2>
+  <div class="card">
+    <h3>Total User: ${users.length}</h3>
+  </div>
+  <div class="card"><h3>📋 Daftar Semua User</h3>`;
+
+  users.forEach(u => {
+    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
+    const isAdmin = u.id === ADMIN_UUID ? '⭐ ADMIN' : '';
+    html += `<div class="permintaan-item">
+      <div style="display:flex; align-items:center; gap:10px">
+        <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" style="width:40px;height:40px;border-radius:50%">
+        <div>
+          <b>${u.nama} ${isAdmin}</b><br>
+          <small>${u.email} | Saldo: ${u.saldo} | ⭐ ${rating}</small>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-sm" onclick="lihatProfilOrang('${u.id}')">LIHAT</button>
+      </div>
+    </div>`
+  })
+  
+  html += `</div>`;
+  container.innerHTML = html;
+}
 async function loadMyProfile(){ if(!userLogin) return; const {data} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(data){ document.getElementById('myNama').innerText = data.nama; document.getElementById('mySkill').innerText = data.skill||'-'; document.getElementById('myBio').innerText = data.bio||'-'; document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; document.getElementById('myWa').innerText = data.no_wa||'-'; document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; document.getElementById('mySekolah').innerText = data.sekolah||'-'; document.getElementById('myYoutube').innerText = data.youtube||'-'; const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; document.getElementById('myRating').innerText = `⭐ ${rating}`; document.getElementById('editNama').value = data.nama; document.getElementById('editSkill').value = data.skill || ''; document.getElementById('editBio').value = data.bio || ''; document.getElementById('editNoWa').value = data.no_wa || ''; document.getElementById('editTgl').value = data.tanggal_lahir || ''; document.getElementById('editSekolah').value = data.sekolah || ''; document.getElementById('editYoutube').value = data.youtube || ''; loadTemanDiProfil(); } }
 
 async function loadTemanDiProfil(){ const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; let jumlah = 0; if(data && data.length > 0){ data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; jumlah++; container.innerHTML += `<div class="teman-item">
@@ -647,12 +711,13 @@ window.lihatProfilOrang = async function(idOrang){
     `;
     document.querySelector('.main').appendChild(profilOrangPage);
     
-    // tambahin ke list showPage
+    // JANGAN NIMPA showPage LAGI. Cukup tambahin ke array yg udah ada
+    const listPages = ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage','profilOrangPage'];
     const oldShowPage = window.showPage;
     window.showPage = function(pageId, el){
-      ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>document.getElementById(id).style.display='none');
+      document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+      listPages.forEach(id=>document.getElementById(id).style.display='none');
       document.getElementById(pageId).style.display='block';
-      if(el) document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
       if(el) el.classList.add('active');
       if(pageId==='jobsPage') loadJobs();
       if(pageId==='penyediaPage') loadPenyedia();
@@ -661,6 +726,7 @@ window.lihatProfilOrang = async function(idOrang){
       if(pageId==='marketPage') loadMarket();
       if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); }
       if(pageId==='chatPage'){ resetNotifChat(); loadDaftarChat(); }
+      if(pageId==='adminPage'){ loadDataAdmin(); }
     }
   }
   
