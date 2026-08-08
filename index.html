@@ -311,8 +311,10 @@ async function loadDaftarTeman(){
   const container = document.getElementById('daftarTeman'); container.innerHTML = '';
   if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada teman</p>'; return; }
   data.forEach(f => { 
-  const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
-  container.innerHTML += `<div class="card">
+    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
+    // TAMBAH INI: skip kalau lawannya admin
+    if(lawan.id === ADMIN_UUID) return;
+    container.innerHTML += `<div class="card">
     <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" 
          class="profil-foto" 
          style="width:80px;height:80px; cursor:pointer" 
@@ -321,7 +323,7 @@ async function loadDaftarTeman(){
     <button class="btn" onclick="bukaChat('${lawan.id}')">Chat</button> 
     <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button>
   </div>` 
-})
+  })
 }
 async function uploadKeStorage(file, bucket, path) {
   const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
@@ -596,7 +598,8 @@ async function loadPenyedia(){
   container.innerHTML = ''; 
   if(!data) return; 
   data.forEach(u=>{ 
-    if(userLogin && u.id!== userLogin.id) {
+    // TAMBAH INI: skip admin dan skip diri sendiri
+    if(userLogin && u.id !== userLogin.id && u.id !== ADMIN_UUID) { 
       const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
       container.innerHTML += `<div class="card">
         <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
@@ -752,14 +755,14 @@ window.lihatProfilOrang = async function(idOrang){
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   
-  if(!keyword) return loadPenyedia(); // kalau kosong load semua lagi
+  if(!keyword) return loadPenyedia();
 
   const { data } = await supabase.from('users').select('*').not('skill', 'is', null);
   
   const hasil = data.filter(u => 
     u.nama.toLowerCase().includes(keyword) || 
     (u.skill && u.skill.toLowerCase().includes(keyword))
-  ).filter(u => userLogin && u.id !== userLogin.id); // buang diri sendiri
+  ).filter(u => userLogin && u.id !== userLogin.id && u.id !== ADMIN_UUID); // <-- TAMBAH && u.id !== ADMIN_UUID
 
   const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
   if(hasil.length === 0){ container.innerHTML = '<p>Penyedia tidak ditemukan</p>'; return; }
@@ -779,7 +782,6 @@ window.cariPenyedia = async function(){
 </div>` 
   })
 }
-
 window.saveProfile = async function(){
   if(!userLogin) return alert("Login dulu")
   const updateData = {
