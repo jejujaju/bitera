@@ -251,20 +251,7 @@ async function compressImage(file, maxSize = 800) { // TAMBAH PARAMETER
 let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null;
 // TAMBAH INI
 
-window.showPage = function(pageId, el){
-    document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-    ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage'].forEach(id=>document.getElementById(id).style.display='none'); // <-- TAMBAH adminPage
-    document.getElementById(pageId).style.display='block';
-    if(el) el.classList.add('active');
-    if(pageId==='jobsPage') loadJobs();
-    if(pageId==='penyediaPage') loadPenyedia();
-    if(pageId==='myProfilePage') loadMyProfile();
-    if(pageId==='videosPage') loadVideos();
-    if(pageId==='marketPage') loadMarket();
-    if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); }
-    if(pageId==='chatPage'){ resetNotifChat(); loadDaftarChat(); }
-    if(pageId==='adminPage'){ loadDataAdmin(); } // <-- TAMBAH INI buat load data admin
-}
+
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
 function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
@@ -629,7 +616,7 @@ async function loadPenyedia(){
   }) 
 }
 async function loadVideos(){ 
-  const { data } = await supabase.from('videos').select('*, users(nama)').order('created_at', {ascending:false});
+  const { data } = await supabase.from('videos').select('*, users:profil_penyedia(nama)').order('created_at', {ascending:false});
   const container = document.getElementById('daftarVideo'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada video</p>';
   data.forEach(v=>{
@@ -675,8 +662,36 @@ async function loadDataAdmin(){
   html += `</div>`;
   container.innerHTML = html;
 }
-async function loadMyProfile(){ if(!userLogin) return; const {data} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(data){ document.getElementById('myNama').innerText = data.nama; document.getElementById('mySkill').innerText = data.skill||'-'; document.getElementById('myBio').innerText = data.bio||'-'; document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; document.getElementById('myWa').innerText = data.no_wa||'-'; document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; document.getElementById('mySekolah').innerText = data.sekolah||'-'; document.getElementById('myYoutube').innerText = data.youtube||'-'; const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; document.getElementById('myRating').innerText = `⭐ ${rating}`; document.getElementById('editNama').value = data.nama; document.getElementById('editSkill').value = data.skill || ''; document.getElementById('editBio').value = data.bio || ''; document.getElementById('editNoWa').value = data.no_wa || ''; document.getElementById('editTgl').value = data.tanggal_lahir || ''; document.getElementById('editSekolah').value = data.sekolah || ''; document.getElementById('editYoutube').value = data.youtube || ''; loadTemanDiProfil(); } }
-
+async function loadMyProfile(){ 
+  if(!userLogin) return; 
+  const {data, error} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
+  if(error) { console.log("Error load profil:", error); return; }
+  
+  if(data){ 
+    saldoSekarang = data.saldo || 0; // <-- PENTING BUAT SALDO
+    updateSaldoUI(); // <-- UPDATE SALDO DI HOME
+    
+    document.getElementById('myNama').innerText = data.nama; 
+    document.getElementById('mySkill').innerText = data.skill||'-'; 
+    document.getElementById('myBio').innerText = data.bio||'-'; 
+    document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; 
+    document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; 
+    document.getElementById('myWa').innerText = data.no_wa||'-'; 
+    document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; 
+    document.getElementById('mySekolah').innerText = data.sekolah||'-'; 
+    document.getElementById('myYoutube').innerText = data.youtube||'-'; 
+    const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; 
+    document.getElementById('myRating').innerText = `⭐ ${rating}`; 
+    document.getElementById('editNama').value = data.nama; 
+    document.getElementById('editSkill').value = data.skill || ''; 
+    document.getElementById('editBio').value = data.bio || ''; 
+    document.getElementById('editNoWa').value = data.no_wa || ''; 
+    document.getElementById('editTgl').value = data.tanggal_lahir || ''; 
+    document.getElementById('editSekolah').value = data.sekolah || ''; 
+    document.getElementById('editYoutube').value = data.youtube || ''; 
+    loadTemanDiProfil(); 
+  } 
+}
 async function loadTemanDiProfil(){ 
   const { data } = await supabase.from('friendships')
     .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
@@ -702,11 +717,10 @@ window.lihatProfilOrang = async function(idOrang){
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === idOrang) return showPage('myProfilePage'); 
   
-  const {data} = await supabase.from('profil_penyedia').select('*').eq('id', idOrang).single(); // <-- GANTI KE VIEW
+  const {data} = await supabase.from('profil_penyedia').select('*').eq('id', idOrang).single();
   if(!data) return alert("Profil tidak ditemukan");
 
-  
-  // Buat halaman profil orang kalau belum ada
+  // BIKIN HALAMAN KALO BELUM ADA
   let profilOrangPage = document.getElementById('profilOrangPage');
   if(!profilOrangPage){
     profilOrangPage = document.createElement('div');
@@ -740,27 +754,9 @@ window.lihatProfilOrang = async function(idOrang){
       </div>
     `;
     document.querySelector('.main').appendChild(profilOrangPage);
-    
-    // JANGAN NIMPA showPage LAGI. Cukup tambahin ke array yg udah ada
-    const listPages = ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage','profilOrangPage'];
-    const oldShowPage = window.showPage;
-    window.showPage = function(pageId, el){
-      document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-      listPages.forEach(id=>document.getElementById(id).style.display='none');
-      document.getElementById(pageId).style.display='block';
-      if(el) el.classList.add('active');
-      if(pageId==='jobsPage') loadJobs();
-      if(pageId==='penyediaPage') loadPenyedia();
-      if(pageId==='myProfilePage') loadMyProfile();
-      if(pageId==='videosPage') loadVideos();
-      if(pageId==='marketPage') loadMarket();
-      if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); }
-      if(pageId==='chatPage'){ resetNotifChat(); loadDaftarChat(); }
-      if(pageId==='adminPage'){ loadDataAdmin(); }
-    }
   }
   
-  // Isi data profil orang
+  // ISI DATA
   document.getElementById('orangNama').innerText = data.nama;
   document.getElementById('orangSkill').innerText = data.skill||'-';
   document.getElementById('orangBio').innerText = data.bio||'-';
@@ -773,11 +769,31 @@ window.lihatProfilOrang = async function(idOrang){
   const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0;
   document.getElementById('orangRating').innerText = `⭐ ${rating}`;
   
-  // Set tombol
   document.getElementById('btnChatOrang').onclick = () => bukaChat(data.id);
   document.getElementById('btnTemanOrang').onclick = () => kirimRequest(data.id);
   
-  showPage('profilOrangPage');
+ 
+}
+  window.showPage = function(pageId, el){
+    document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+    
+    // TAMBAH profilOrangPage disini biar bisa disembunyiin juga
+    ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage','profilOrangPage'].forEach(id=>{
+        const page = document.getElementById(id);
+        if(page) page.style.display='none';
+    }); 
+    
+    document.getElementById(pageId).style.display='block';
+    if(el) el.classList.add('active');
+    
+    if(pageId==='jobsPage') loadJobs();
+    if(pageId==='penyediaPage') loadPenyedia();
+    if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); } // <-- UDAH BENER
+    if(pageId==='videosPage') loadVideos();
+    if(pageId==='marketPage') loadMarket();
+    if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); }
+    if(pageId==='chatPage'){ resetNotifChat(); loadDaftarChat(); }
+    if(pageId==='adminPage'){ loadDataAdmin(); } 
 }
 
 window.cariPenyedia = async function(){
