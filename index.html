@@ -192,7 +192,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <h2>⚙️ DASHBOARD ADMIN</h2>
   <div class="card">
     <h3>Selamat datang Admin</h3>
-    <p>UUID: de42b2d3-94cc-4b8f-b7b9-b7c056bd96b3</p>
+    
     <p>Nanti disini buat atur user, job, laporan dll</p>
   </div>
 </div>
@@ -250,11 +250,7 @@ async function compressImage(file, maxSize = 800) { // TAMBAH PARAMETER
 }
 let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null;
 // TAMBAH INI
-const ADMIN_UUID = 'de42b2d3-94cc-4b8f-b7b9-b7c056bd96b3';
-function isAdmin(user) {
-  if (!user) return false;
-  return user.id === ADMIN_UUID;
-}
+
 window.showPage = function(pageId, el){
     document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
     ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','adminPage'].forEach(id=>document.getElementById(id).style.display='none'); // <-- TAMBAH adminPage
@@ -272,21 +268,6 @@ window.showPage = function(pageId, el){
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
 function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
-function updateUI(isLogin) { 
-  const menuBtn = document.getElementById('menuBtn'); 
-  if(isLogin){ 
-    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`; 
-    // TAMBAH INI: cek kalau admin, munculin tombol
-    if(isAdmin(userLogin)){
-      document.getElementById('btnAdmin').style.display = 'inline-block';
-    } else {
-      document.getElementById('btnAdmin').style.display = 'none';
-    }
-  } else { 
-    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    document.getElementById('btnAdmin').style.display = 'none';
-  } 
-}
 function updateBadgeChat(){ const badge = document.getElementById('badgeChat'); badge.style.display = jumlahNotifChat > 0? 'flex' : 'none'; badge.innerText = jumlahNotifChat; }
 function updateBadgeTeman(){ const badge = document.getElementById('badgeTeman'); badge.style.display = jumlahNotifTeman > 0? 'flex' : 'none'; badge.innerText = jumlahNotifTeman; }
 function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }
@@ -307,13 +288,24 @@ async function loadPermintaan(){
 
 async function loadDaftarTeman(){
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(*), addressee:users!addressee_id(*)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
-  const container = document.getElementById('daftarTeman'); container.innerHTML = '';
-  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada teman</p>'; return; }
+  const { data } = await supabase.from('friendships')
+    .select('*, requester:users!requester_id(id,nama,foto,is_admin), addressee:users!addressee_id(id,nama,foto,is_admin)')
+    .eq('status','accepted')
+    .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+  
+  const container = document.getElementById('daftarTeman'); 
+  container.innerHTML = '';
+  
+  if(!data || data.length === 0){ 
+    container.innerHTML = '<p>Belum ada teman</p>'; 
+    return; 
+  }
+  
   data.forEach(f => { 
-    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
-    // TAMBAH INI: skip kalau lawannya admin
-    if(lawan.id === ADMIN_UUID) return;
+    const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester; 
+    
+    if(lawan.is_admin) return; // <-- SKIP KALAU LAWANNYA ADMIN
+    
     container.innerHTML += `<div class="card">
     <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" 
          class="profil-foto" 
@@ -372,14 +364,14 @@ document.getElementById('uploadCover').onchange = async (e) => {
 }
 window.cariTeman = async function(){
   const keyword = document.getElementById('cariTemanInput').value.toLowerCase();
-  if(!keyword) return loadDaftarTeman(); // kalau kosong balikin ke daftar teman semua
+  if(!keyword) return loadDaftarTeman(); 
   
-  const { data: allTeman } = await supabase.from('friendships').select('*, requester:users!requester_id(*), addressee:users!addressee_id(*)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+  const { data: allTeman } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto,is_admin), addressee:users!addressee_id(id,nama,foto,is_admin)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   
   const container = document.getElementById('daftarTeman'); container.innerHTML = '';
   const hasil = allTeman.filter(f => {
     const lawan = f.requester_id === userLogin.id? f.addressee : f.requester;
-    return lawan.nama.toLowerCase().includes(keyword);
+    return !lawan.is_admin && lawan.nama.toLowerCase().includes(keyword); // <-- TAMBAH !lawan.is_admin
   });
 
   if(hasil.length === 0){ container.innerHTML = '<p>Teman tidak ditemukan</p>'; return; }
@@ -432,7 +424,31 @@ window.daftarUser = async function() {
   alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar'); 
 }
-window.loginUser = async function() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value; const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); if(error) return alert('Gagal: ' + error.message); userLogin = data.user; let { data:u } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(!u){ await supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0 }); u = {saldo: 0}; } saldoSekarang = u?.saldo || 0; updateSaldoUI(); updateUI(true); closeModal('login'); }
+window.loginUser = async function() { 
+  const email = document.getElementById('loginEmail').value; 
+  const pass = document.getElementById('loginPass').value; 
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
+  if(error) return alert('Gagal: ' + error.message); 
+  
+  userLogin = data.user; 
+  let { data:u } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
+  
+  saldoSekarang = u?.saldo || 0; 
+  updateSaldoUI(); 
+  updateUI(u?.is_admin); // <-- langsung lempar true/false
+  closeModal('login'); 
+}
+
+function updateUI(isAdmin) { 
+  const menuBtn = document.getElementById('menuBtn'); 
+  if(userLogin){ 
+    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`; 
+    document.getElementById('btnAdmin').style.display = isAdmin ? 'inline-block' : 'none'; 
+  } else { 
+    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
+    document.getElementById('btnAdmin').style.display = 'none';
+  } 
+}
 window.logout = async function() { await supabase.auth.signOut(); location.reload(); }
 
 window.buatPost = async function() { 
@@ -593,26 +609,27 @@ window.kirimRating = async function(){
   loadMyProfile();
 }
 async function loadPenyedia(){ 
-  const { data } = await supabase.from('users').select('*'); 
+  const { data } = await supabase.from('users').select('*'); // <-- ini ambil is_admin juga otomatis
   const container = document.getElementById('daftarPenyedia'); 
   container.innerHTML = ''; 
   if(!data) return; 
-  data.forEach(u=>{ 
-    // TAMBAH INI: skip admin dan skip diri sendiri
-    if(userLogin && u.id !== userLogin.id && u.id !== ADMIN_UUID) { 
-      const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
-      container.innerHTML += `<div class="card">
-        <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
-             class="profil-foto" 
-             style="cursor:pointer" 
-             onclick="lihatProfilOrang('${u.id}')">
-        <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-        <p>${u.skill||''}</p>
-        <p>⭐ ${rating}</p>
-        <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
-        <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
-      </div>`
-    }
+
+  // TAMBAH FILTER INI SEBELUM forEach
+  const usersBukanAdmin = data.filter(u => userLogin && u.id !== userLogin.id && !u.is_admin);
+
+  usersBukanAdmin.forEach(u=>{ // <-- ganti dari data.forEach jadi ini
+    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
+    container.innerHTML += `<div class="card">
+      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
+           class="profil-foto" 
+           style="cursor:pointer" 
+           onclick="lihatProfilOrang('${u.id}')">
+      <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
+      <p>${u.skill||''}</p>
+      <p>⭐ ${rating}</p>
+      <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
+      <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
+    </div>`
   }) 
 }
 async function loadVideos(){ 
@@ -644,7 +661,7 @@ async function loadDataAdmin(){
 
   users.forEach(u => {
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
-    const isAdmin = u.id === ADMIN_UUID ? '⭐ ADMIN' : '';
+   const isAdmin = u.is_admin ? '⭐ ADMIN' : ''; // <-- ganti dari u.id === ADMIN_UUID
     html += `<div class="permintaan-item">
       <div style="display:flex; align-items:center; gap:10px">
         <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" style="width:40px;height:40px;border-radius:50%">
@@ -664,14 +681,24 @@ async function loadDataAdmin(){
 }
 async function loadMyProfile(){ if(!userLogin) return; const {data} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); if(data){ document.getElementById('myNama').innerText = data.nama; document.getElementById('mySkill').innerText = data.skill||'-'; document.getElementById('myBio').innerText = data.bio||'-'; document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; document.getElementById('myWa').innerText = data.no_wa||'-'; document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; document.getElementById('mySekolah').innerText = data.sekolah||'-'; document.getElementById('myYoutube').innerText = data.youtube||'-'; const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; document.getElementById('myRating').innerText = `⭐ ${rating}`; document.getElementById('editNama').value = data.nama; document.getElementById('editSkill').value = data.skill || ''; document.getElementById('editBio').value = data.bio || ''; document.getElementById('editNoWa').value = data.no_wa || ''; document.getElementById('editTgl').value = data.tanggal_lahir || ''; document.getElementById('editSekolah').value = data.sekolah || ''; document.getElementById('editYoutube').value = data.youtube || ''; loadTemanDiProfil(); } }
 
-async function loadTemanDiProfil(){ const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; let jumlah = 0; if(data && data.length > 0){ data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; jumlah++; container.innerHTML += `<div class="teman-item">
-  <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" onclick="lihatProfilOrang('${lawan.id}')">
-  <p style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</p>
-</div>` }) } else { container.innerHTML = '<p>Belum ada teman</p>' }
+async function loadTemanDiProfil(){ 
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto,is_admin), addressee:users!addressee_id(id,nama,foto,is_admin)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
+  const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; 
+  let jumlah = 0; 
+  if(data && data.length > 0){ 
+    data.forEach(f => { 
+      const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
+      if(lawan.is_admin) return; // <-- TAMBAH INI
+      jumlah++; 
+      container.innerHTML += `<div class="teman-item">
+        <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" onclick="lihatProfilOrang('${lawan.id}')">
+        <p style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</p>
+      </div>` 
+    }) 
+  } else { container.innerHTML = '<p>Belum ada teman</p>' }
   document.getElementById('myJumlahTeman').innerText = `${jumlah} Teman`;
   document.getElementById('myJumlahTeman2').innerText = jumlah;
 }
-
 window.lihatProfilOrang = async function(idOrang){
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === idOrang) return showPage('myProfilePage'); // kalau klik diri sendiri
@@ -754,15 +781,17 @@ window.lihatProfilOrang = async function(idOrang){
 }
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
-  
   if(!keyword) return loadPenyedia();
 
   const { data } = await supabase.from('users').select('*').not('skill', 'is', null);
   
   const hasil = data.filter(u => 
-    u.nama.toLowerCase().includes(keyword) || 
-    (u.skill && u.skill.toLowerCase().includes(keyword))
-  ).filter(u => userLogin && u.id !== userLogin.id && u.id !== ADMIN_UUID); // <-- TAMBAH && u.id !== ADMIN_UUID
+    (u.nama.toLowerCase().includes(keyword) || 
+    (u.skill && u.skill.toLowerCase().includes(keyword)))
+    && userLogin 
+    && u.id !== userLogin.id 
+    && !u.is_admin // <-- TAMBAH INI
+  ); // <-- TAMBAH && u.id !== ADMIN_UUID
 
   const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
   if(hasil.length === 0){ container.innerHTML = '<p>Penyedia tidak ditemukan</p>'; return; }
@@ -818,12 +847,19 @@ window.bukaChat = async function(lawanId) {
 
 async function loadDaftarChat() {
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto,is_admin), addressee:users!addressee_id(id,nama,foto,is_admin)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   const list = document.getElementById('daftarChat'); list.innerHTML = '<h3>Daftar Chat</h3>';
   if(!data || data.length === 0){ list.innerHTML += '<p>Belum ada teman</p>'; return; }
-  data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` })
+  
+  data.forEach(f => { 
+    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
+    
+    if(lawan.is_admin) return; // <-- TAMBAH INI. SKIP KALAU LAWANNYA ADMIN
+    
+    list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}"
+      onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` 
+  })
 }
-
 async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
@@ -859,12 +895,16 @@ supabase.auth.getSession().then(({ data: { session }}) => {
   if(session){
     userLogin = session.user;
     supabase.from('users').select('*').eq('id', userLogin.id).single().then(({data})=>{
-      if(data){ saldoSekarang = data.saldo || 0; updateSaldoUI(); updateUI(true); }
-      else { supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0 }) }
+      if(data){
+        saldoSekarang = data.saldo || 0;
+        updateSaldoUI();
+        updateUI(data.is_admin); // <-- GANTI dari updateUI(true)
+      }
+      else { supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0, is_admin: false }) // <-- TAMBAH is_admin: false
+      }
     })
   }
 })
-
 });
 </script>
 </body>
