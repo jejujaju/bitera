@@ -279,38 +279,27 @@ window.batalTeman = async function(id){ await supabase.from('friendships').delet
 
 async function loadPermintaan(){
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending');
+  const { data } = await supabase.from('friendships').select('*, requester:profil_penyedia!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending'); // <-- PAKE VIEW
   jumlahNotifTeman = data? data.length : 0; updateBadgeTeman();
   const container = document.getElementById('daftarPermintaan'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Tidak ada permintaan</p>';
   data.forEach(f => { container.innerHTML += `<div class="permintaan-item"><div><img src="${f.requester.foto||'https://ui-avatars.com/api/?name='+f.requester.nama}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle"> ${f.requester.nama}</div><div><button class="btn btn-sukses" onclick="terimaRequest('${f.requester.id}')">Terima</button> <button class="btn btn-batal" onclick="batalRequest('${f.requester.id}')">Tolak</button></div></div>` })
 }
-
 async function loadDaftarTeman(){
   if(!userLogin) return;
   const { data } = await supabase.from('friendships')
-    .select('*, requester:users!requester_id(id,nama,foto,is_admin), addressee:users!addressee_id(id,nama,foto,is_admin)')
+    .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- PAKE VIEW
     .eq('status','accepted')
     .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   
   const container = document.getElementById('daftarTeman'); 
   container.innerHTML = '';
-  
-  if(!data || data.length === 0){ 
-    container.innerHTML = '<p>Belum ada teman</p>'; 
-    return; 
-  }
+  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada teman</p>'; return; }
   
   data.forEach(f => { 
     const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester; 
-    
-    if(lawan.is_admin) return; // <-- SKIP KALAU LAWANNYA ADMIN
-    
     container.innerHTML += `<div class="card">
-    <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" 
-         class="profil-foto" 
-         style="width:80px;height:80px; cursor:pointer" 
-         onclick="lihatProfilOrang('${lawan.id}')">
+    <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')">
     <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3>
     <button class="btn" onclick="bukaChat('${lawan.id}')">Chat</button> 
     <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button>
@@ -479,7 +468,7 @@ window.buatPost = async function() {
 }
 // 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
 async function loadJobs(){ 
-  const { data } = await supabase.from('jobs').select('*, users(nama, foto)').order('created_at', {ascending:false}); 
+  const { data } = await supabase.from('jobs').select('*, users:profil_penyedia(nama, foto)').order('created_at', {ascending:false}); //
   const container = document.getElementById('daftarJob'); 
   container.innerHTML = ''; 
   if(!data) return; 
@@ -523,7 +512,7 @@ window.ambilJob = async function(jobId){
 // 3. FUNGSI BARU: LIHAT DAFTAR PELAMAR BUAT ORG A
 window.lihatPelamar = async function(jobId){
   const { data: pelamar } = await supabase.from('job_applications')
-    .select('*, users(*)').eq('job_id', jobId).eq('status','menunggu');
+    .select('*, users:profil_penyedia(*)').eq('job_id', jobId).eq('status','menunggu'); //
   
   let html = `<button class="btn btn-batal" onclick="loadJobs()">⬅️ KEMBALI KE LOWONGAN</button><h3>Daftar Pelamar</h3>`;
   
@@ -609,28 +598,19 @@ window.kirimRating = async function(){
   loadMyProfile();
 }
 async function loadPenyedia(){ 
-  const { data, error } = await supabase.from('users')
-    .select('*')
-    .eq('is_admin', false); // <-- CUMA AMBIL USER BIASA
-
+  const { data, error } = await supabase.from('profil_penyedia') // <-- PAKE VIEW
+    .select('*');
   if(error) { console.log("Error load penyedia:", error); return; }
-
   const container = document.getElementById('daftarPenyedia'); 
   container.innerHTML = ''; 
   if(!data) return; 
-
   const usersBukanAdmin = data.filter(u => userLogin && u.id !== userLogin.id);
-
   usersBukanAdmin.forEach(u=>{ 
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
     container.innerHTML += `<div class="card">
-      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
-           class="profil-foto" 
-           style="cursor:pointer" 
-           onclick="lihatProfilOrang('${u.id}')">
+      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer" onclick="lihatProfilOrang('${u.id}')">
       <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-      <p>${u.skill||''}</p>
-      <p>⭐ ${rating}</p>
+      <p>${u.skill||''}</p><p>⭐ ${rating}</p>
       <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
       <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
     </div>`
@@ -783,22 +763,13 @@ window.lihatProfilOrang = async function(idOrang){
   
   showPage('profilOrangPage');
 }
+
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
-
-  const { data } = await supabase.from('users')
-  .select('*')
-  .eq('is_admin', false) // <-- CUMA CARI USER BIASA
-  .not('skill', 'is', null);
-  
-  const hasil = data.filter(u => 
-    (u.nama.toLowerCase().includes(keyword) || 
-    (u.skill && u.skill.toLowerCase().includes(keyword)))
-    && userLogin 
-    && u.id !== userLogin.id 
-    && !u.is_admin // <-- TAMBAH INI
-  ); // <-- TAMBAH && u.id !== ADMIN_UUID
+  const { data } = await supabase.from('profil_penyedia').select('*').not('skill', 'is', null); // <-- PAKE VIEW
+  const hasil = data.filter(u => (u.nama.toLowerCase().includes(keyword) || (u.skill && u.skill.toLowerCase().includes(keyword))) && userLogin && u.id !== userLogin.id);
+  // <-- TAMBAH && u.id !== ADMIN_UUIDa
 
   const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
   if(hasil.length === 0){ container.innerHTML = '<p>Penyedia tidak ditemukan</p>'; return; }
