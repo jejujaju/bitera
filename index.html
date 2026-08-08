@@ -609,15 +609,19 @@ window.kirimRating = async function(){
   loadMyProfile();
 }
 async function loadPenyedia(){ 
-  const { data } = await supabase.from('users').select('*'); // <-- ini ambil is_admin juga otomatis
+  const { data, error } = await supabase.from('users')
+    .select('*')
+    .eq('is_admin', false); // <-- CUMA AMBIL USER BIASA
+
+  if(error) { console.log("Error load penyedia:", error); return; }
+
   const container = document.getElementById('daftarPenyedia'); 
   container.innerHTML = ''; 
   if(!data) return; 
 
-  // TAMBAH FILTER INI SEBELUM forEach
-  const usersBukanAdmin = data.filter(u => userLogin && u.id !== userLogin.id && !u.is_admin);
+  const usersBukanAdmin = data.filter(u => userLogin && u.id !== userLogin.id);
 
-  usersBukanAdmin.forEach(u=>{ // <-- ganti dari data.forEach jadi ini
+  usersBukanAdmin.forEach(u=>{ 
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
     container.innerHTML += `<div class="card">
       <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
@@ -783,7 +787,10 @@ window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
 
-  const { data } = await supabase.from('users').select('*').not('skill', 'is', null);
+  const { data } = await supabase.from('users')
+  .select('*')
+  .eq('is_admin', false) // <-- CUMA CARI USER BIASA
+  .not('skill', 'is', null);
   
   const hasil = data.filter(u => 
     (u.nama.toLowerCase().includes(keyword) || 
