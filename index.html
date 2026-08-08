@@ -894,18 +894,27 @@ function subscribeRealtime(convId){
 supabase.auth.getSession().then(({ data: { session }}) => {
   if(session){
     userLogin = session.user;
-    supabase.from('users').select('*').eq('id', userLogin.id).single().then(({data})=>{
+    supabase.from('users').select('*').eq('id', userLogin.id).single().then(({data, error})=>{
+      if(error){
+        console.error("Gagal ambil data user:", error.message)
+        return
+      }
       if(data){
         saldoSekarang = data.saldo || 0;
         updateSaldoUI();
-        updateUI(data.is_admin); // <-- GANTI dari updateUI(true)
+        updateUI(data.is_admin); 
+        loadMyProfile(); // langsung load profil pas login
       }
-      else { supabase.from('users').insert({ id: userLogin.id, nama: userLogin.user_metadata?.nama || userLogin.email.split('@')[0], email: userLogin.email, saldo: 0, total_rating: 0, jumlah_rating: 0, is_admin: false }) // <-- TAMBAH is_admin: false
+      else { 
+        console.log("Data user tidak ditemukan di tabel users")
       }
     })
+  } else {
+    updateUI(false); // kalau belum login
   }
 })
-});
+
+}); // 
 </script>
 </body>
 </html>
