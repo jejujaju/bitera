@@ -454,13 +454,20 @@ window.loginUser = async function() {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
   if(error) return alert('Gagal: ' + error.message); 
   
-  userLogin = data.user; 
-  let { data:u } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
+  // INI YG PENTING: AMBIL DATA DARI TABEL public.users
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', data.user.id)
+    .single(); 
+
+  if(userError) return alert('Gagal ambil profil: ' + userError.message);
   
-  saldoSekarang = u?.saldo || 0; 
+  userLogin = userData; // <-- ISI userLogin PAKE DATA DARI public.users
+  saldoSekarang = userData.saldo || 0; 
   updateSaldoUI(); 
-  updateUI(u?.is_admin); 
-  loadMyProfile(); // <-- TAMBAH INI
+  updateUI(userData.is_admin); 
+  loadMyProfile(); 
   closeModal('login'); 
 }
 function updateUI(isAdmin) { 
@@ -1008,26 +1015,28 @@ function subscribeRealtime(convId){
 }
 // ========== END SISTEM CHAT ==========
 
-supabase.auth.getSession().then(({ data: { session }}) => {
+supabase.auth.getSession().then(async ({ data: { session }}) => { // <-- TAMBAH async
   if(session){
-    userLogin = session.user;
-    supabase.from('users').select('*').eq('id', userLogin.id).single().then(({data, error})=>{
-      if(error){
-        console.error("Gagal ambil data user:", error.message)
-        return
-      }
-      if(data){
-        saldoSekarang = data.saldo || 0;
-        updateSaldoUI();
-       updateUI(data.is_admin === true); // <-- KASIH === true
-        loadMyProfile(); // langsung load profil pas login
-      }
-      else { 
-        console.log("Data user tidak ditemukan di tabel users")
-      }
-    })
+    // AMBIL DARI public.users BUKAN DARI session.user
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if(error){
+      console.error("Gagal ambil data user:", error.message)
+      return
+    }
+    if(userData){
+      userLogin = userData; // <-- INI KUNCINYA
+      saldoSekarang = userData.saldo || 0;
+      updateSaldoUI();
+      updateUI(userData.is_admin === true);
+      loadMyProfile(); 
+    }
   } else {
-    updateUI(false); // kalau belum login
+    updateUI(false); 
   }
 })
 
