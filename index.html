@@ -321,7 +321,8 @@ async function loadDaftarTeman(){
 async function uploadKeStorage(file, bucket, path) {
   const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
   if(error) throw error;
-  const { data } = await supabase.storage.from(bucket).getPublicUrl(path); // TAMBAH AWAIT
+  
+  const { data } = await supabase.storage.from(bucket).getPublicUrl(path); // UDAH PAKE AWAIT
   return data.publicUrl;
 }
 document.getElementById('uploadFoto').onchange = async (e) => {
@@ -626,7 +627,7 @@ window.kirimBukti = async function(){
     const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { upsert: true }); // <-- PAKE compressedFile
     if(upErr) return alert('Gagal upload: ' + upErr.message);
 
-    const { data } = await supabase.storage.from('bukti-job').getPublicUrl(filePath); // <-- TAMBAH await
+    const { data } = await supabase.storage.from('bukti-job').getPublicUrl(filePath); // TAMBAH AWAIT
 
     const { error } = await supabase.from('jobs').update({
       status: 'menunggu_konfirmasi', bukti_url: data.publicUrl
@@ -733,7 +734,7 @@ window.kirimRating = async function(){
   }
 }
 async function loadPenyedia(){ 
-  const { data, error } = await supabase.from('profil_penyedia') // <-- PAKE VIEW
+  const { data, error } = await supabase.from('users') // BENER // <-- PAKE VIEW
     .select('*');
   if(error) { console.log("Error load penyedia:", error); return; }
   const container = document.getElementById('daftarPenyedia'); 
@@ -938,7 +939,7 @@ window.saveProfile = async function(){
   }
 
   const { error } = await supabase
-   .from('profil_penyedia') // <-- GANTI KE SINI
+   .from('users') // <-- GANTI KE SINI
    .update(updateData)
    .eq('id', userLogin.id)
 
