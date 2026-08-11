@@ -877,10 +877,8 @@ window.lihatProfilOrang = async function(idOrang){
   
  
 }
-  window.showPage = function(pageId, el){
+ window.showPage = function(pageId, el){
     document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-    
-    // TAMBAH profilOrangPage disini biar bisa disembunyiin juga
     ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
         const page = document.getElementById(id);
         if(page) page.style.display='none';
@@ -891,12 +889,12 @@ window.lihatProfilOrang = async function(idOrang){
     
     if(pageId==='jobsPage') loadJobs();
     if(pageId==='penyediaPage') loadPenyedia();
-    if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); } // <-- UDAH BENER
+    if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); } // <-- PASTIIN ADA INI
+    if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
     if(pageId==='videosPage') loadVideos();
     if(pageId==='marketPage') loadMarket();
-    
+    if(pageId==='chatPage') { loadDaftarChat(); }
    }
-
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
