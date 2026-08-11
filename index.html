@@ -404,34 +404,46 @@ window.cariTeman = async function(){
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
 window.daftarUser = async function() { 
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerText = "MENDAFTAR...";
+
   const nama = document.getElementById('daftarNama').value; 
   const email = document.getElementById('daftarEmail').value; 
   const pass = document.getElementById('daftarPass').value; 
   
-  if(!nama || !email || !pass) return alert("Isi semua dulu");
-  if(!document.getElementById('setujuTOS').checked) return alert("Setuju TOS dulu"); 
-  if(pass.length < 6) return alert("Password minimal 6 karakter");
+  if(!nama || !email || !pass) {
+    btn.disabled = false; btn.innerText = "DAFTAR";
+    return alert("Isi semua dulu");
+  }
+  if(!document.getElementById('setujuTOS').checked) {
+    btn.disabled = false; btn.innerText = "DAFTAR";
+    return alert("Setuju TOS dulu"); 
+  }
+  if(pass.length < 6) {
+    btn.disabled = false; btn.innerText = "DAFTAR";
+    return alert("Password minimal 6 karakter");
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email: email,
-    password: pass, // <- UDAH DIBENERIN
+    password: pass,
     options: {
-      data: { nama: nama }
+      data: { nama: nama } // nama ini nanti dibaca trigger
     }
   }); 
   
-  if(error) return alert('Gagal Daftar Auth: ' + error.message); 
-  
-  const { error: dbError } = await supabase.from('users').insert({
-    id: data.user.id, 
-    nama: nama, 
-    email: email, 
-    saldo: 0, 
-    total_rating: 0, 
-    jumlah_rating: 0
-  }); 
+  btn.disabled = false;
+  btn.innerText = "DAFTAR";
 
-  if(dbError) return alert('Gagal Simpan DB: ' + dbError.message);
+  if(error) {
+    if(error.message.includes('security purposes')){
+      return alert('Kebanyakan request. Tunggu 1 menit lalu coba lagi ya');
+    }
+    return alert('Gagal Daftar Auth: ' + error.message); 
+  } 
+  
+  // HAPUS BAGIAN INSERT KE users. UDAH DIURUS TRIGGER
   
   alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar'); 
