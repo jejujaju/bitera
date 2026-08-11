@@ -915,7 +915,11 @@ window.cariPenyedia = async function(){
   })
 }
 window.saveProfile = async function(){
-  if(!userLogin) return alert("Login dulu")
+  if(!userLogin) return alert("Login dulu");
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerText = "MENYIMPAN...";
+
   const updateData = {
     nama: document.getElementById('editNama').value,
     skill: document.getElementById('editSkill').value,
@@ -925,12 +929,23 @@ window.saveProfile = async function(){
     sekolah: document.getElementById('editSekolah').value,
     youtube: document.getElementById('editYoutube').value
   }
-  const { error } = await supabase.from('users').update(updateData).eq('id', userLogin.id)
-  if(error) return alert('Gagal simpan: ' + error.message)
-  alert('Profil berhasil disimpan!')
-  closeModal('editProfile')
-  loadMyProfile()
-  }
+
+  const { data, error } = await supabase
+   .from('users')
+   .update(updateData)
+   .eq('id', userLogin.id)
+   .select(); // <-- INI PENTING BIAR DAPET DATA BARU
+
+  btn.disabled = false;
+  btn.innerText = "SIMPAN";
+
+  if(error) return alert('Gagal simpan: ' + error.message);
+
+  userLogin = data[0]; // update data di memori biar ga logout
+  closeModal('editProfile');
+  loadMyProfile(); // refresh tampilan
+  alert('Profil berhasil disimpan!');
+}
 
 
 // ========== SISTEM CHAT 100% ==========
