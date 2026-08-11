@@ -935,25 +935,22 @@ window.saveProfile = async function(){
     tanggal_lahir: document.getElementById('editTgl').value,
     sekolah: document.getElementById('editSekolah').value,
     youtube: document.getElementById('editYoutube').value
+    // SALDO DAN RATING GA ADA DISINI
   }
 
-  const { data, error } = await supabase
-   .from('users')
+  const { error } = await supabase
+   .from('profil_penyedia') // <-- GANTI KE SINI
    .update(updateData)
    .eq('id', userLogin.id)
-   .select(); // <-- INI PENTING BIAR DAPET DATA BARU
 
   btn.disabled = false;
   btn.innerText = "SIMPAN";
-
   if(error) return alert('Gagal simpan: ' + error.message);
 
-  userLogin = data[0]; // update data di memori biar ga logout
   closeModal('editProfile');
-  loadMyProfile(); // refresh tampilan
+  loadMyProfile();
   alert('Profil berhasil disimpan!');
 }
-
 
 // ========== SISTEM CHAT 100% ==========
 window.bukaChat = async function(lawanId) {
