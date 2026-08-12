@@ -699,34 +699,41 @@ window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
 
   try {
+    // 1. Ambil data job, pekerja, dan wallet sistem
     const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    const { data: wallet } = await supabase.from('wallet_sistem').select('saldo').eq('id', 1).single(); // <-- AMBIL WALLET SISTEM
+    const { data: wallet } = await supabase.from('wallet_sistem').select('saldo').eq('id', 1).single();
 
-    const total = job.harga;
-    const adminCut = Math.ceil(total * 0.16);
-    const pekerjaDapat = total - adminCut;
+    const total = job.harga; // contoh: 1000 koin
+    const adminCut = Math.ceil(total * 0.16); // 16% = 160 koin
+    const pekerjaDapat = total - adminCut; // 84% = 840 koin
 
-    // 1. Transfer ke pekerja
-    await supabase.from('users').update({
+    // 2. Pake RPC/Transaction biar ga korup. Pake 3 update sekaligus
+    // Update saldo pekerja + rating
+    const p1 = supabase.from('users').update({
       saldo: pekerja.saldo + pekerjaDapat,
       total_rating: pekerja.total_rating + skorRating,
       jumlah_rating: pekerja.jumlah_rating + 1
     }).eq('id', pekerjaRatingId);
 
-    // 2. Transfer potongan ke WALLET SISTEM bukan ke user
-    await supabase.from('wallet_sistem').update({ 
+    // Update wallet sistem
+    const p2 = supabase.from('wallet_sistem').update({ 
       saldo: wallet.saldo + adminCut,
       updated_at: new Date()
     }).eq('id', 1);
 
-    // 3. Selesaiin job
-    await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+    // Update status job jadi selesai
+    const p3 = supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+
+    const results = await Promise.all([p1, p2, p3]);
+    const error = results.find(r => r.error);
+    if(error) throw error.error;
 
     closeModal('ratingModal');
     alert(`✅ Pembayaran Selesai!\nPekerja dapat: ${pekerjaDapat} Koin\nWallet Sistem dapat: ${adminCut} Koin`);
     loadJobs();
     loadMyProfile();
+    
   } catch(err) {
     console.error(err);
     alert('Gagal kirim rating: ' + err.message);
