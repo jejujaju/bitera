@@ -876,6 +876,9 @@ window.lihatProfilOrang = async function(idOrang){
   document.getElementById('btnTemanOrang').onclick = () => kirimRequest(data.id);
   
  
+//  
+showPage('profilOrangPage'); //
+
 }
  window.showPage = function(pageId, el){
     document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
@@ -908,16 +911,12 @@ window.cariPenyedia = async function(){
   hasil.forEach(u=>{ 
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
     container.innerHTML += `<div class="card">
-  <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
-       class="profil-foto" 
-       style="cursor:pointer" 
-       onclick="lihatProfilOrang('${u.id}')">
-  <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-  <p>${u.skill||''}</p>
-  <p>⭐ ${rating}</p>
-  <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
-  <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
-</div>` 
+      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer" onclick="lihatProfilOrang('${u.id}')">
+      <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
+      <p>${u.skill||''}</p><p>⭐ ${rating}</p>
+      <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
+      <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
+    </div>`
   })
 }
 window.saveProfile = async function(){
