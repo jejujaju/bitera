@@ -223,8 +223,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 </div>
 
-<audio id="notifSound" src="https://cdn.pixabay.com/audio/2025/04/02/audio_3c2b9c1e5a.mp3"></audio>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -510,32 +508,38 @@ window.buatPost = async function() {
 }
 // 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
 async function loadJobs(){ 
-  const { data } = await supabase.from('jobs').select('*, users:profil_penyedia(nama, foto)').order('created_at', {ascending:false}); //
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('*, users:users(nama, foto)') // <-- UDAH DIGANTI
+    .order('created_at', {ascending:false}); 
+
+  console.log("DATA JOB:", data); // TAMBAH INI BUAT CEK
+  console.log("ERROR:", error); // TAMBAH INI BUAT CEK
+
   const container = document.getElementById('daftarJob'); 
   container.innerHTML = ''; 
-  if(!data) return; 
+  if(error){ console.error(error); return; }
+  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada job</p>'; return; } 
+
   data.forEach(job=>{ 
     let btn = ''; 
-    if(job.status === 'open' && job.user_id !== userLogin.id) 
+    if(job.status === 'open' && job.user_id !== userLogin?.id) // <-- kasih ? biar aman
       btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
     
-    // Kalau ini job punya A, munculin tombol "Lihat Pelamar"
-    if(job.user_id === userLogin.id && job.status === 'open') 
+    if(job.user_id === userLogin?.id && job.status === 'open') 
       btn = `<button class="btn btn-sukses" onclick="lihatPelamar('${job.id}')">LIHAT PELAMAR</button>`;
 
-    // Kalau status dikerjakan, munculin tombol selesai buat pekerja
-    if(job.status === 'dikerjakan' && job.diambil_oleh === userLogin.id) 
+    if(job.status === 'dikerjakan' && job.diambil_oleh === userLogin?.id) 
       btn = `<button class="btn" onclick="selesaiKerja('${job.id}')">✅ SELESAI & KIRIM BUKTI</button>`;
     
-    // Kalau status menunggu_konfirmasi, munculin tombol konfirmasi buat pemberi job
-    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin.id) 
+    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
       btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
 
     container.innerHTML += `<div class="card">
       <h3>${job.judul}</h3><p>${job.deskripsi}</p>
       <p><b>Reward: ${job.harga} Koin</b></p>
       <p>Status: <b>${job.status}</b></p>
-      <p>Oleh: ${job.users.nama}</p>
+      <p>Oleh: ${job.users?.nama || 'Anonim'}</p>  // <-- kasih ? juga
       <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">CHAT WA</a>${btn}
     </div>` 
   }) 
