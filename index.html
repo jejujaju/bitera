@@ -509,33 +509,41 @@ window.buatPost = async function() {
 // 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
 async function loadJobs(){ 
   const { data, error } = await supabase
-    .from('jobs')
-    .select(`
-      *,
-      pemberi_job:users!jobs_user_id_fkey(nama, foto),
-      pekerja:users!jobs_diambil_oleh_fkey(nama, foto)
-    `)
-    .order('created_at', {ascending:false}); 
+   .from('jobs')
+   .select(`*, pemberi_job:users!jobs_user_id_fkey(nama, foto), pekerja:users!jobs_diambil_oleh_fkey(nama, foto)`)
+   .order('created_at', {ascending:false}); 
 
-  if(error){ console.error("ERROR LOAD JOB:", error); return; }
+  if(error){ console.error(error); return; }
   const container = document.getElementById('daftarJob'); 
   container.innerHTML = ''; 
   if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada job</p>'; return; } 
 
   data.forEach(job=>{ 
     let btn = ''; 
-    if(job.status === 'open' && job.user_id !== userLogin?.id) 
+    
+    // 1. Tombol lamar buat orang lain
+    if(job.status === 'open' && job.user_id!== userLogin?.id) 
       btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
     
+    // 2. Tombol lihat pelamar buat yg punya job
     if(job.user_id === userLogin?.id && job.status === 'open') 
       btn = `<button class="btn btn-sukses" onclick="lihatPelamar('${job.id}')">LIHAT PELAMAR</button>`;
+
+    // 3. TOMBOL BARU: VC SELESAI. Muncul buat pemberi DAN pekerja
+    if(job.status === 'dikerjakan' && (job.user_id === userLogin?.id || job.diambil_oleh === userLogin?.id)) 
+      btn = `<button class="btn btn-sukses" onclick="selesaiKerja('${job.id}')">✅ VC SELESAI & KIRIM BUKTI</button>`;
+    
+    // 4. Tombol konfirmasi buat pemberi job
+    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
+      btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
 
     container.innerHTML += `<div class="card">
       <h3>${job.judul}</h3><p>${job.deskripsi}</p>
       <p><b>Reward: ${job.harga} Koin</b></p>
       <p>Status: <b>${job.status}</b></p>
       <p>Oleh: ${job.pemberi_job?.nama || 'Anonim'}</p>
-      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">CHAT WA</a>${btn}
+      ${job.pekerja? `<p>Dikerjakan: ${job.pekerja.nama}</p>` : ''}
+      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT WA / VC</a>${btn}
     </div>` 
   }) 
 }
