@@ -709,31 +709,26 @@ window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
 
   try {
-    // 1. Ambil data job & pekerja
     const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    const { data: walletAdmin } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
-let saldoAdminSekarang = walletAdmin?.saldo || 0; // <-- kalau null jadi 0 // <-- AMBIL DARI TABEL WALLET
+    const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single(); // <-- INI YG TADI SALAH
 
     const total = job.harga; 
-    const adminCut = Math.ceil(total * 0.16); // 16% = 160 koin
-    const pekerjaDapat = total - adminCut; // 84% = 840 koin
+    const adminCut = Math.ceil(total * 0.16);
+    const pekerjaDapat = total - adminCut;
+    const saldoAdminSekarang = wallet?.saldo || 0; // safety
 
-    // 2. JALANIN 3 UPDATE SEKALIGUS
-    // Update saldo pekerja + rating
     const p1 = supabase.from('users').update({
       saldo: pekerja.saldo + pekerjaDapat,
       total_rating: pekerja.total_rating + skorRating,
       jumlah_rating: pekerja.jumlah_rating + 1
     }).eq('id', pekerjaRatingId);
 
-    // Update saldo admin di tabel wallet
-    const p2 = supabase.from('wallet').update({ // <-- GANTI DARI wallet_sistem KE wallet
+    const p2 = supabase.from('wallet').update({ // <-- WALLET
       saldo: saldoAdminSekarang + adminCut
     }).eq('id', 1);
 
-    // Catat riwayat di ledger
-    const p3 = supabase.from('wallet_sistem').insert({ // <-- INI JADI LEDGER
+    const p3 = supabase.from('wallet_sistem').insert({ // <-- LEDGER
       dari_user_id: pekerjaRatingId,
       ke_user_id: null,
       tipe: 'fee_admin',
@@ -742,7 +737,6 @@ let saldoAdminSekarang = walletAdmin?.saldo || 0; // <-- kalau null jadi 0 // <-
       relasi_id: ratingJobId
     });
 
-    // Update status job jadi selesai
     const p4 = supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
 
     const results = await Promise.all([p1, p2, p3, p4]);
@@ -750,7 +744,7 @@ let saldoAdminSekarang = walletAdmin?.saldo || 0; // <-- kalau null jadi 0 // <-
     if(error) throw error.error;
 
     closeModal('ratingModal');
-    alert(`✅ Pembayaran Selesai!\nPekerja dapat: ${pekerjaDapat} Koin\nAdmin dapat: ${adminCut} Koin`);
+    alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin`);
     loadJobs();
     loadMyProfile();
     
@@ -758,25 +752,6 @@ let saldoAdminSekarang = walletAdmin?.saldo || 0; // <-- kalau null jadi 0 // <-
     console.error(err);
     alert('Gagal kirim rating: ' + err.message);
   }
-}
-async function loadPenyedia(){ 
-  const { data, error } = await supabase.from('users') // BENER // <-- PAKE VIEW
-    .select('*');
-  if(error) { console.log("Error load penyedia:", error); return; }
-  const container = document.getElementById('daftarPenyedia'); 
-  container.innerHTML = ''; 
-  if(!data) return; 
-  const usersBukanAdmin = data.filter(u => userLogin && u.id !== userLogin.id);
-  usersBukanAdmin.forEach(u=>{ 
-    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
-    container.innerHTML += `<div class="card">
-      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer" onclick="lihatProfilOrang('${u.id}')">
-      <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-      <p>${u.skill||''}</p><p>⭐ ${rating}</p>
-      <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
-      <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ Tambah Teman</button>
-    </div>`
-  }) 
 }
 async function loadVideos(){ 
   const { data } = await supabase.from('videos').select('*, users:profil_penyedia(nama)').order('created_at', {ascending:false});
