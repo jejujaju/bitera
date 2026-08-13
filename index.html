@@ -705,18 +705,20 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 }
 
 // 7. KIRIM RATING - VERSI BARU WALLET + LEDGER
+// 7. KIRIM RATING - VERSI FINAL
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
 
   try {
     const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single(); // <-- INI YG TADI SALAH
+    const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
+
+    if(!wallet) throw new Error("Tabel wallet belum ada. Jalankan SQL insert id=1 dulu");
 
     const total = job.harga; 
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
-    const saldoAdminSekarang = wallet?.saldo || 0; // safety
 
     const p1 = supabase.from('users').update({
       saldo: pekerja.saldo + pekerjaDapat,
@@ -724,11 +726,11 @@ window.kirimRating = async function(){
       jumlah_rating: pekerja.jumlah_rating + 1
     }).eq('id', pekerjaRatingId);
 
-    const p2 = supabase.from('wallet').update({ // <-- WALLET
-      saldo: saldoAdminSekarang + adminCut
+    const p2 = supabase.from('wallet').update({
+      saldo: wallet.saldo + adminCut
     }).eq('id', 1);
 
-    const p3 = supabase.from('wallet_sistem').insert({ // <-- LEDGER
+    const p3 = supabase.from('wallet_sistem').insert({
       dari_user_id: pekerjaRatingId,
       ke_user_id: null,
       tipe: 'fee_admin',
@@ -752,6 +754,19 @@ window.kirimRating = async function(){
     console.error(err);
     alert('Gagal kirim rating: ' + err.message);
   }
+}
+
+// FIX BUG SUARA NOTIF
+function subscribeRealtime(convId){
+  if(channelChat) supabase.removeChannel(channelChat);
+  channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
+    if(payload.new.sender_id!== userLogin.id){
+      jumlahNotifChat++; updateBadgeChat(); 
+      // document.getElementById('notifSound').play(); <-- HAPUS INI DULU
+    }
+    if(payload.new.conversation_id === convAktif) loadPesan();
+    loadDaftarChat();
+  }).subscribe();
 }
 async function loadVideos(){ 
   const { data } = await supabase.from('videos').select('*, users:profil_penyedia(nama)').order('created_at', {ascending:false});
