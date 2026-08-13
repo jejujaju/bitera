@@ -712,7 +712,8 @@ window.kirimRating = async function(){
     // 1. Ambil data job & pekerja
     const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    const { data: walletAdmin } = await supabase.from('wallet').select('saldo').eq('id', 1).single(); // <-- AMBIL DARI TABEL WALLET
+    const { data: walletAdmin } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
+let saldoAdminSekarang = walletAdmin?.saldo || 0; // <-- kalau null jadi 0 // <-- AMBIL DARI TABEL WALLET
 
     const total = job.harga; 
     const adminCut = Math.ceil(total * 0.16); // 16% = 160 koin
@@ -728,7 +729,7 @@ window.kirimRating = async function(){
 
     // Update saldo admin di tabel wallet
     const p2 = supabase.from('wallet').update({ // <-- GANTI DARI wallet_sistem KE wallet
-      saldo: walletAdmin.saldo + adminCut
+      saldo: saldoAdminSekarang + adminCut
     }).eq('id', 1);
 
     // Catat riwayat di ledger
