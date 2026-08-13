@@ -735,8 +735,7 @@ window.kirimRating = async function(){
       ke_user_id: pekerjaRatingId, 
       tipe: 'pembayaran_job',
       jumlah: pekerjaDapat,
-      keterangan: `Bayar job: ${job.judul}`,
-      relasi_id: ratingJobId
+      keterangan: `Bayar job: ${job.judul} - JobID:${ratingJobId}` // ID job taruh sini
     })
     if(mutasi1) throw mutasi1;
 
@@ -746,8 +745,7 @@ window.kirimRating = async function(){
       ke_user_id: null, // null = kas bitera
       tipe: 'fee_admin',
       jumlah: adminCut,
-      keterangan: `Fee 16% job: ${job.judul}`,
-      relasi_id: ratingJobId
+      keterangan: `Fee 16% job: ${job.judul} - JobID:${ratingJobId}` // ID job taruh sini
     })
     if(mutasi2) throw mutasi2;
 
