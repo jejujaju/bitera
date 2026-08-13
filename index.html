@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -702,55 +703,53 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
     bintangText.innerText = 'Klik bintang untuk memberi rating';
   })
 }
-// 7. KIRIM RATING
+
+// 7. KIRIM RATING - VERSI BARU WALLET + LEDGER
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
-  if(!pekerjaRatingId) return alert("Data pekerja tidak ditemukan");
 
   try {
-    // 1. Ambil data job dan pekerja
-    const { data: job, error: jobErr } = await supabase.from('jobs').select('harga,judul').eq('id', ratingJobId).single();
-    const { data: pekerja, error: pekerjaErr } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    if(jobErr || pekerjaErr) throw new Error("Data tidak lengkap: " + (jobErr?.message || pekerjaErr?.message));
+    // 1. Ambil data job & pekerja
+    const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
+    const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    const { data: walletAdmin } = await supabase.from('wallet').select('saldo').eq('id', 1).single(); // <-- AMBIL DARI TABEL WALLET
 
     const total = job.harga; 
-    const adminCut = Math.ceil(total * 0.16); // 16% buat admin
-    const pekerjaDapat = total - adminCut; // 84% buat pekerja
+    const adminCut = Math.ceil(total * 0.16); // 16% = 160 koin
+    const pekerjaDapat = total - adminCut; // 84% = 840 koin
 
-    // 2. Update saldo pekerja + rating
-    const { error: updatePekerja } = await supabase.from('users').update({
-      saldo: (pekerja.saldo || 0) + pekerjaDapat,
-      total_rating: (pekerja.total_rating || 0) + skorRating,
-      jumlah_rating: (pekerja.jumlah_rating || 0) + 1
+    // 2. JALANIN 3 UPDATE SEKALIGUS
+    // Update saldo pekerja + rating
+    const p1 = supabase.from('users').update({
+      saldo: pekerja.saldo + pekerjaDapat,
+      total_rating: pekerja.total_rating + skorRating,
+      jumlah_rating: pekerja.jumlah_rating + 1
     }).eq('id', pekerjaRatingId);
-    if(updatePekerja) throw updatePekerja;
 
-    // 3. Update status job jadi selesai
-    const { error: updateJob } = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
-    if(updateJob) throw updateJob;
+    // Update saldo admin di tabel wallet
+    const p2 = supabase.from('wallet').update({ // <-- GANTI DARI wallet_sistem KE wallet
+      saldo: walletAdmin.saldo + adminCut
+    }).eq('id', 1);
 
-    // 4. CATAT MUTASI: Pemberi job -> Pekerja 84%
-    const { error: mutasi1 } = await supabase.from('wallet_sistem').insert({
-      dari_user_id: userLogin.id, 
-      ke_user_id: pekerjaRatingId, 
-      tipe: 'pembayaran_job',
-      jumlah: pekerjaDapat,
-      keterangan: `Bayar job: ${job.judul} - JobID:${ratingJobId}` // ID job taruh sini
-    })
-    if(mutasi1) throw mutasi1;
-
-    // 5. CATAT MUTASI: Pekerja -> Admin/Bitera 16%
-    const { error: mutasi2 } = await supabase.from('wallet_sistem').insert({
-      dari_user_id: pekerjaRatingId, 
-      ke_user_id: null, // null = kas bitera
+    // Catat riwayat di ledger
+    const p3 = supabase.from('wallet_sistem').insert({ // <-- INI JADI LEDGER
+      dari_user_id: pekerjaRatingId,
+      ke_user_id: null,
       tipe: 'fee_admin',
       jumlah: adminCut,
-      keterangan: `Fee 16% job: ${job.judul} - JobID:${ratingJobId}` // ID job taruh sini
-    })
-    if(mutasi2) throw mutasi2;
+      keterangan: `Fee 16% Job ID: ${ratingJobId}`,
+      relasi_id: ratingJobId
+    });
+
+    // Update status job jadi selesai
+    const p4 = supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+
+    const results = await Promise.all([p1, p2, p3, p4]);
+    const error = results.find(r => r.error);
+    if(error) throw error.error;
 
     closeModal('ratingModal');
-    alert(`✅ Selesai!\nPekerja dapat: ${pekerjaDapat} Koin\nFee Admin: ${adminCut} Koin`);
+    alert(`✅ Pembayaran Selesai!\nPekerja dapat: ${pekerjaDapat} Koin\nAdmin dapat: ${adminCut} Koin`);
     loadJobs();
     loadMyProfile();
     
