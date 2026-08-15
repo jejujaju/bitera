@@ -288,16 +288,21 @@ window.closeModal = function(id){ document.getElementById(id).style.display = 'n
 function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
 function updateBadgeChat(){ const badge = document.getElementById('badgeChat'); badge.style.display = jumlahNotifChat > 0? 'flex' : 'none'; badge.innerText = jumlahNotifChat; }
 function updateBadgeTeman(){ const badge = document.getElementById('badgeTeman'); badge.style.display = jumlahNotifTeman > 0? 'flex' : 'none'; badge.innerText = jumlahNotifTeman; }
-function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }function showDesktopNotif(pengirim, isiPesan, foto){
+function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }
+function showDesktopNotif(pengirim, isiPesan, foto, lawanId){
   if(Notification.permission === "granted"){
-    new Notification(`Pesan baru dari ${pengirim}`, {
+    const notif = new Notification(`Pesan baru dari ${pengirim}`, {
       body: isiPesan,
       icon: foto || 'solusiin.png',
-      tag: 'bitera-chat' // biar ga numpuk
+      tag: 'bitera-chat'
     });
+    // kalau klik notif langsung buka chat
+    notif.onclick = () => {
+      window.focus();
+      bukaChat(lawanId);
+    }
   }
 }
-
 window.kirimRequest = async function(id){ await supabase.from('friendships').insert({requester_id: userLogin.id, addressee_id: id}); alert("Request terkirim"); loadPenyedia(); }
 window.batalRequest = async function(id){ await supabase.from('friendships').delete().match({requester_id: userLogin.id, addressee_id: id}); loadPenyedia(); loadPermintaan(); }
 window.terimaRequest = async function(id){ await supabase.from('friendships').update({status: 'accepted'}).match({requester_id: id, addressee_id: userLogin.id}); alert("Berhasil jadi teman"); loadPermintaan(); loadDaftarTeman(); loadMyProfile(); }
@@ -821,8 +826,8 @@ function subscribeRealtime(convId){
         // Ambil data pengirim
         const {data: pengirim} = await supabase.from('users').select('nama,foto').eq('id', pesanBaru.sender_id).single();
         
-        // 2. MUNCULIN NOTIF DI BAR BROWSER
-        showDesktopNotif(pengirim.nama, pesanBaru.content, pengirim.foto);
+        // TARUH DISINI 👇
+        showDesktopNotif(pengirim.nama, pesanBaru.content, pengirim.foto, pesanBaru.sender_id);
         
         // 3. MUNCULIN SUARA
         audioNotif.play().catch(()=>{});
@@ -830,7 +835,8 @@ function subscribeRealtime(convId){
         // 4. MUNCULIN TOAST DI ATAS KAN
         let toast = document.createElement('div');
         toast.innerText = `💬 ${pengirim.nama}: ${pesanBaru.content}`;
-        toast.style.cssText = `position:fixed; top:80px; right:20px; background:var(--accent); color:#fff; padding:12px 20px; border-radius:10px; z-index:999999; box-shadow:var(--shadow); animation:slideIn 0.3s`;
+        toast.style.cssText = `position:fixed; top:80px; right:20px; background:var(--accent); color:#fff; padding:12px 20px; border-radius:10px; z-index:999; box-shadow:var(--shadow); animation:slideIn 0.3s; cursor:pointer`;
+        toast.onclick = () => bukaChat(pesanBaru.sender_id); // klik toast langsung ke chat
         document.body.appendChild(toast);
         setTimeout(()=>toast.remove(), 4000);
       }
@@ -1090,16 +1096,6 @@ window.kirimPesan = async function() {
   input.value = '';
 }
 
-function subscribeRealtime(convId){
-  if(channelChat) supabase.removeChannel(channelChat);
-  channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
-    if(payload.new.sender_id!== userLogin.id){
-      jumlahNotifChat++; updateBadgeChat();
-    }
-    if(payload.new.conversation_id === convAktif) loadPesan();
-    loadDaftarChat();
-  }).subscribe();
-}
 // ========== END SISTEM CHAT ==========
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
