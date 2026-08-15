@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -39,7 +37,6 @@ header{background:var(--card)!important;padding:15px 0;border-bottom:4px solid v
 .home-dashboard {flex: 1;min-width: 320px;background: var(--card);padding: 30px;border-radius: 15px;border: 3px solid var(--accent);box-shadow: var(--shadow);text-align: center;}
 .home-video iframe {width: 100%;height: 400px;border-radius: 15px;border: 3px solid var(--accent);}
 footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;border-top:3px solid var(--accent);font-weight:bold;color:var(--accent)}
-
 /* CSS BARU ALA FB */
 .profil-cover{width:100%;height:250px;object-fit:cover;border-radius:10px 10px 0 0}
 .profil-foto{width:150px;height:150px;border-radius:50%;border:5px solid var(--card);object-fit:cover;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
@@ -290,7 +287,7 @@ window.batalTeman = async function(id){ await supabase.from('friendships').delet
 
 async function loadPermintaan(){
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships').select('*, requester:profil_penyedia!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending'); // <-- PAKE VIEW
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending'); // <-- PAKE VIEW
   jumlahNotifTeman = data? data.length : 0; updateBadgeTeman();
   const container = document.getElementById('daftarPermintaan'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Tidak ada permintaan</p>';
@@ -299,7 +296,7 @@ async function loadPermintaan(){
 async function loadDaftarTeman(){
   if(!userLogin) return;
   const { data } = await supabase.from('friendships')
-    .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- PAKE VIEW
+    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- PAKE VIEW
     .eq('status','accepted')
     .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   
@@ -368,7 +365,7 @@ window.cariTeman = async function(){
   if(!keyword) return loadDaftarTeman(); // kalau kosong balikin ke daftar normal
   
   const { data: allTeman, error } = await supabase.from('friendships')
-    .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- UDAH PAKE VIEW
+    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- UDAH PAKE VIEW
     .eq('status','accepted')
     .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   
@@ -467,18 +464,18 @@ window.loginUser = async function() {
   userLogin = userData; // <-- ISI userLogin PAKE DATA DARI public.users
   saldoSekarang = userData.saldo || 0; 
   updateSaldoUI(); 
-  updateUI(userData.is_admin); 
+  updateUI(true); 
   loadMyProfile(); 
   closeModal('login'); 
 }
-function updateUI(isAdmin) { 
+function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn'); 
-  if(userLogin){ 
-    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;  
+  if(isLogin){ 
+    menuBtn.innerHTML = `<div class="saldo-box">SALDO: <span id="saldoText">0</span></div><button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;  
   } else { 
     menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    
   } 
+  updateSaldoUI(); // <-- TAMBAHIN BARIS INI
 }
 window.logout = async function() { await supabase.auth.signOut(); location.reload(); }
 
@@ -491,12 +488,10 @@ window.buatPost = async function() {
   if(!judul ||!hadiah) return alert("Isi semua");
   if(saldoSekarang < hadiah) return alert("Saldo tidak cukup");
 
-  // Potong saldo
   const saldoBaru = saldoSekarang - hadiah;
   const { error: saldoErr } = await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
   if(saldoErr) return alert(saldoErr.message);
   
-  // Insert job
   const { error } = await supabase.from('jobs').insert({
     user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'
   });
@@ -506,7 +501,19 @@ window.buatPost = async function() {
   updateSaldoUI(); 
   alert('Job diposting! Saldo baru: ' + saldoBaru);
   closeModal('post'); 
-  loadJobs(); 
+  loadJobs(); // <-- TUTUP DISINI
+} // <-- TAMBAH KURUNG TUTUP INI
+
+// BARU TARUH loadPenyedia DI LUAR
+async function loadPenyedia(){
+  if(!userLogin) return;
+  const { data, error } = await supabase.from('users').select('*').neq('id', userLogin.id).not('skill', 'is', null);
+  if(error){ console.log(error); return }
+  const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
+  data.forEach(u=>{ 
+    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
+    container.innerHTML += `<div class="card"><img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer" onclick="lihatProfilOrang('${u.id}')"><h3>${u.nama}</h3><p>${u.skill||''}</p><p>⭐ ${rating}</p><button class="btn" onclick="bukaChat('${u.id}')">💬 CHAT</button></div>`
+  })
 }
 // 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
 async function loadJobs(){ 
@@ -563,7 +570,7 @@ window.ambilJob = async function(jobId){
 // 3. FUNGSI BARU: LIHAT DAFTAR PELAMAR BUAT ORG A
 window.lihatPelamar = async function(jobId){
   const { data: pelamar } = await supabase.from('job_applications')
-    .select('*, users:profil_penyedia(*)').eq('job_id', jobId).eq('status','menunggu'); //
+    .select('*, users:users!pelamar_id(*)').eq('job_id', jobId).eq('status','menunggu'); //
   
   let html = `<button class="btn btn-batal" onclick="loadJobs()">⬅️ KEMBALI KE LOWONGAN</button><h3>Daftar Pelamar</h3>`;
   
@@ -708,42 +715,24 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 // 7. KIRIM RATING - VERSI FINAL
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
-
   try {
-    const { data: job } = await supabase.from('jobs').select('harga').eq('id', ratingJobId).single();
+    const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single(); // <-- TAMBAH user_id
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    const { data: pemberi } = await supabase.from('users').select('saldo').eq('id', job.user_id).single(); // <-- AMBIL SALDO PEMBERI
     const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
 
-    if(!wallet) throw new Error("Tabel wallet belum ada. Jalankan SQL insert id=1 dulu");
+    if(!wallet) throw new Error("Tabel wallet belum ada. Jalankan SQL: insert into wallet (id, saldo) values (1,0)");
 
     const total = job.harga; 
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
+    if(pemberi.saldo < total) throw new Error("Saldo pemberi job tidak cukup");
 
-    const p1 = supabase.from('users').update({
-      saldo: pekerja.saldo + pekerjaDapat,
-      total_rating: pekerja.total_rating + skorRating,
-      jumlah_rating: pekerja.jumlah_rating + 1
-    }).eq('id', pekerjaRatingId);
-
-    const p2 = supabase.from('wallet').update({
-      saldo: wallet.saldo + adminCut
-    }).eq('id', 1);
-
-    const p3 = supabase.from('wallet_sistem').insert({
-      dari_user_id: pekerjaRatingId,
-      ke_user_id: null,
-      tipe: 'fee_admin',
-      jumlah: adminCut,
-      keterangan: `Fee 16% Job ID: ${ratingJobId}`,
-      relasi_id: ratingJobId
-    });
-
-    const p4 = supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
-
-    const results = await Promise.all([p1, p2, p3, p4]);
-    const error = results.find(r => r.error);
-    if(error) throw error.error;
+    await supabase.from('users').update({ saldo: pekerja.saldo + pekerjaDapat, total_rating: pekerja.total_rating + skorRating, jumlah_rating: pekerja.jumlah_rating + 1 }).eq('id', pekerjaRatingId);
+    await supabase.from('users').update({ saldo: pemberi.saldo - total }).eq('id', job.user_id); // <-- POTONG DARI PEMBERI
+    await supabase.from('wallet').update({ saldo: wallet.saldo + adminCut }).eq('id', 1);
+    await supabase.from('wallet_sistem').insert({ dari_user_id: job.user_id, tipe: 'fee_admin', jumlah: adminCut, keterangan: `Fee 16% Job ID: ${ratingJobId}`, relasi_id: ratingJobId });
+    await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
 
     closeModal('ratingModal');
     alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin`);
@@ -762,14 +751,14 @@ function subscribeRealtime(convId){
   channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
     if(payload.new.sender_id!== userLogin.id){
       jumlahNotifChat++; updateBadgeChat(); 
-      // document.getElementById('notifSound').play(); <-- HAPUS INI DULU
+      
     }
     if(payload.new.conversation_id === convAktif) loadPesan();
     loadDaftarChat();
   }).subscribe();
 }
 async function loadVideos(){ 
-  const { data } = await supabase.from('videos').select('*, users:profil_penyedia(nama)').order('created_at', {ascending:false});
+  const { data } = await supabase.from('videos').select('*, users:users!user_id(nama)').order('created_at', {ascending:false});
   const container = document.getElementById('daftarVideo'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada video</p>';
   data.forEach(v=>{
@@ -814,7 +803,7 @@ async function loadMyProfile(){
 }
 async function loadTemanDiProfil(){ 
   const { data } = await supabase.from('friendships')
-    .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
+    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
     .eq('status','accepted')
     .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
     
@@ -837,7 +826,7 @@ window.lihatProfilOrang = async function(idOrang){
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === idOrang) return showPage('myProfilePage'); 
   
-  const {data} = await supabase.from('profil_penyedia').select('*').eq('id', idOrang).single();
+  const {data} = await supabase.from('users').select('*').eq('id', idOrang).single();
   if(!data) return alert("Profil tidak ditemukan");
 
   // BIKIN HALAMAN KALO BELUM ADA
@@ -918,7 +907,7 @@ showPage('profilOrangPage'); //
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
-  const { data } = await supabase.from('profil_penyedia').select('*').not('skill', 'is', null); // <-- PAKE VIEW
+  const { data } = await supabase.from('users').select('*').not('skill', 'is', null); // <-- PAKE VIEW
   const hasil = data.filter(u => (u.nama.toLowerCase().includes(keyword) || (u.skill && u.skill.toLowerCase().includes(keyword))) && userLogin && u.id !== userLogin.id);
   // <-- TAMBAH && u.id !== ADMIN_UUIDa
 
@@ -974,7 +963,7 @@ window.bukaChat = async function(lawanId) {
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
 
-  const { data: users } = await supabase.from('profil_penyedia').select('nama,foto').eq('id', lawanId).single(); // <-- GANTI KE VIEW
+  const { data: users } = await supabase.from('users').select('nama,foto').eq('id', lawanId).single(); // <-- GANTI KE VIEW
   document.getElementById('chatHeader').innerHTML = `<img src="${users.foto||'https://ui-avatars.com/api/?name='+users.nama}" style="width:35px;height:35px;border-radius:50%;vertical-align:middle;margin-right:10px">${users.nama}`
 
   let { data: conv } = await supabase.from('conversations').select('id').or(`and(user1_id.eq.${userLogin.id},user2_id.eq.${lawanId}),and(user1_id.eq.${lawanId},user2_id.eq.${userLogin.id})`).maybeSingle();
@@ -984,7 +973,7 @@ window.bukaChat = async function(lawanId) {
 async function loadDaftarChat() {
   if(!userLogin) return;
   const { data } = await supabase.from('friendships')
-    .select('*, requester:profil_penyedia!requester_id(id,nama,foto), addressee:profil_penyedia!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
+    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
     .eq('status','accepted')
     .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   const list = document.getElementById('daftarChat'); list.innerHTML = '<h3>Daftar Chat</h3>';
