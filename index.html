@@ -401,11 +401,10 @@ window.cariTeman = async function(){
 }
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
-window.daftarUser = async function() { 
+window.daftarUser = async function(event) { // <-- TAMBAH event
   const btn = event.target;
   btn.disabled = true;
   btn.innerText = "MENDAFTAR...";
-
   const nama = document.getElementById('daftarNama').value; 
   const email = document.getElementById('daftarEmail').value; 
   const pass = document.getElementById('daftarPass').value; 
@@ -447,13 +446,18 @@ window.daftarUser = async function() {
   closeModal('daftar'); 
 }
 window.loginUser = async function() { 
+  const email = document.getElementById('loginEmail').value; // <-- TAMBAH INI
+  const pass = document.getElementById('loginPass').value; // <-- TAMBAH INI
+  
+  if(!email || !pass) return alert('Isi email dan password');
+  
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
   if(error) return alert('Gagal: ' + error.message); 
   
   const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
   
   userLogin = userData; 
-  localStorage.setItem('bitera_user', JSON.stringify(userData)); // <-- TAMBAH INI
+  localStorage.setItem('bitera_user', JSON.stringify(userData));
   saldoSekarang = userData.saldo || 0; 
   updateSaldoUI(); 
   updateUI(true); 
@@ -931,7 +935,7 @@ window.cariPenyedia = async function(){
     </div>`
   })
 }
-window.saveProfile = async function(){
+window.saveProfile = async function(event){ // <-- TAMBAH event
   if(!userLogin) return alert("Login dulu");
   const btn = event.target;
   btn.disabled = true;
