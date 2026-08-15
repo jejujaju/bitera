@@ -1052,6 +1052,7 @@ window.saveProfile = async function(event){ // <-- TAMBAH event
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
+  resetNotifChat(); // <-- TAMBAH BARIS INI BIAR BADGE ILANG
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
 
