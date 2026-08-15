@@ -726,9 +726,8 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
   try {
-    const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single(); // <-- TAMBAH user_id
+    const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    const { data: pemberi } = await supabase.from('users').select('saldo').eq('id', job.user_id).single(); // <-- AMBIL SALDO PEMBERI
     const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
 
     if(!wallet) throw new Error("Tabel wallet belum ada. Jalankan SQL: insert into wallet (id, saldo) values (1,0)");
@@ -736,12 +735,27 @@ window.kirimRating = async function(){
     const total = job.harga; 
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
-    if(pemberi.saldo < total) throw new Error("Saldo pemberi job tidak cukup");
+    // HAPUS CEK SALDO PEMBERI. KARENA UDAH KEPOTONG PAS POST
 
-    await supabase.from('users').update({ saldo: pekerja.saldo + pekerjaDapat, total_rating: pekerja.total_rating + skorRating, jumlah_rating: pekerja.jumlah_rating + 1 }).eq('id', pekerjaRatingId);
-    await supabase.from('users').update({ saldo: pemberi.saldo - total }).eq('id', job.user_id); // <-- POTONG DARI PEMBERI
+    // 1. TAMBAH KE PEKERJA
+    await supabase.from('users').update({ 
+      saldo: pekerja.saldo + pekerjaDapat, 
+      total_rating: pekerja.total_rating + skorRating, 
+      jumlah_rating: pekerja.jumlah_rating + 1 
+    }).eq('id', pekerjaRatingId);
+
+    // 2. HAPUS BARIS INI. JANGAN POTONG LAGI DARI PEMBERI
+    // await supabase.from('users').update({ saldo: pemberi.saldo - total }).eq('id', job.user_id); <-- HAPUS INI
+
+    // 3. TAMBAH KE WALLET ADMIN
     await supabase.from('wallet').update({ saldo: wallet.saldo + adminCut }).eq('id', 1);
-    await supabase.from('wallet_sistem').insert({ dari_user_id: job.user_id, tipe: 'fee_admin', jumlah: adminCut, keterangan: `Fee 16% Job ID: ${ratingJobId}`, relasi_id: ratingJobId });
+    await supabase.from('wallet_sistem').insert({ 
+      dari_user_id: job.user_id, 
+      tipe: 'fee_admin', 
+      jumlah: adminCut, 
+      keterangan: `Fee 16% Job ID: ${ratingJobId}`, 
+      relasi_id: ratingJobId 
+    });
     await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
 
     closeModal('ratingModal');
@@ -754,7 +768,6 @@ window.kirimRating = async function(){
     alert('Gagal kirim rating: ' + err.message);
   }
 }
-
 // FIX BUG SUARA NOTIF
 function subscribeRealtime(convId){
   if(channelChat) supabase.removeChannel(channelChat);
