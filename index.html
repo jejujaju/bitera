@@ -447,21 +447,13 @@ window.daftarUser = async function() {
   closeModal('daftar'); 
 }
 window.loginUser = async function() { 
-  const email = document.getElementById('loginEmail').value; 
-  const pass = document.getElementById('loginPass').value; 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
   if(error) return alert('Gagal: ' + error.message); 
   
-  // INI YG PENTING: AMBIL DATA DARI TABEL public.users
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', data.user.id)
-    .single(); 
-
-  if(userError) return alert('Gagal ambil profil: ' + userError.message);
+  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
   
-  userLogin = userData; // <-- ISI userLogin PAKE DATA DARI public.users
+  userLogin = userData; 
+  localStorage.setItem('bitera_user', JSON.stringify(userData)); // <-- TAMBAH INI
   saldoSekarang = userData.saldo || 0; 
   updateSaldoUI(); 
   updateUI(true); 
@@ -471,13 +463,27 @@ window.loginUser = async function() {
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn'); 
   if(isLogin){ 
-    menuBtn.innerHTML = `<div class="saldo-box">SALDO: <span id="saldoText">0</span></div><button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;  
+    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
   } else { 
     menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
+    // TAMBAH INI BIAR DATA HILANG
+    document.getElementById('daftarPenyedia').innerHTML = '';
+    document.getElementById('daftarJob').innerHTML = '';
+    document.getElementById('daftarTeman').innerHTML = '';
+    document.getElementById('daftarVideo').innerHTML = '';
+    saldoSekarang = 0; updateSaldoUI();
+    showPage('homePage');
   } 
-  updateSaldoUI(); // <-- TAMBAHIN BARIS INI
 }
-window.logout = async function() { await supabase.auth.signOut(); location.reload(); }
+
+window.logout = async function() { 
+  await supabase.auth.signOut(); 
+  localStorage.removeItem('bitera_user'); // HAPUS CACHE
+  saldoSekarang = 0; // RESET SALDO
+  updateSaldoUI(); // UPDATE UI JADI 0
+  userLogin = null; // RESET USER
+  location.reload(); 
+}
 
 window.buatPost = async function() { 
   if(!userLogin) return alert("Login dulu"); 
@@ -1008,7 +1014,7 @@ function subscribeRealtime(convId){
   if(channelChat) supabase.removeChannel(channelChat);
   channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
     if(payload.new.sender_id!== userLogin.id){
-      jumlahNotifChat++; updateBadgeChat(); document.getElementById('notifSound').play();
+      jumlahNotifChat++; updateBadgeChat();
     }
     if(payload.new.conversation_id === convAktif) loadPesan();
     loadDaftarChat();
@@ -1016,27 +1022,25 @@ function subscribeRealtime(convId){
 }
 // ========== END SISTEM CHAT ==========
 
-supabase.auth.getSession().then(async ({ data: { session }}) => { // <-- TAMBAH async
-  if(session){
-    // AMBIL DARI public.users BUKAN DARI session.user
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
+supabase.auth.getSession().then(async ({ data: { session }}) => {
+  const savedUser = localStorage.getItem('bitera_user');
+  if(session && savedUser){
+    try {
+      userLogin = JSON.parse(savedUser); // BACA DARI CACHE BIAR GA LEMOT
+      // VALIDASI ULANG KE DB BIAR SALDO PALING BARU
+      const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
+      if(userData){
+        userLogin = userData;
+        localStorage.setItem('bitera_user', JSON.stringify(userData)); // UPDATE CACHE
+      }
+    } catch(e) { console.log(e) }
 
-    if(error){
-      console.error("Gagal ambil data user:", error.message)
-      return
-    }
-    if(userData){
-      userLogin = userData; // <-- INI KUNCINYA
-      saldoSekarang = userData.saldo || 0;
-      updateSaldoUI();
-      updateUI(userData.is_admin === true);
-      loadMyProfile(); 
-    }
+    saldoSekarang = userLogin.saldo || 0;
+    updateSaldoUI();
+    updateUI(true);
+    loadMyProfile(); 
   } else {
+    localStorage.removeItem('bitera_user'); // JAGA2 KALAU SESSION MATI
     updateUI(false); 
   }
 })
