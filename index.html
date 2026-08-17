@@ -839,6 +839,24 @@ async function loadMyProfile(){
     document.getElementById('editSekolah').value = data.sekolah || ''; 
     document.getElementById('editYoutube').value = data.youtube || ''; 
     loadTemanDiProfil(); 
+
+
+    // ===== INI TAMBAHAN BUAT ADMIN =====
+     loadTemanDiProfil(); 
+
+    document.getElementById('adminPanel')?.remove();
+
+    if(data.role === 'admin'){ // <-- INI KUNCINYA
+      console.log("ADMIN KEDETEKSI");
+      let adminCard = document.createElement('div');
+      adminCard.id = 'adminPanel'; 
+      adminCard.className = 'card';
+      adminCard.style.border = '3px solid gold'; // biar keliatan
+      adminCard.innerHTML = `<h3>👑 PANEL ADMIN BITERA</h3><p>Selamat datang Admin</p>`;
+      document.getElementById('myProfilePage').appendChild(adminCard);
+    }
+  
+
   } 
 }
 async function loadTemanDiProfil(){ 
