@@ -74,6 +74,10 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 .bintang.active {color:#FFD700}
 .bintang-text {font-weight:bold; font-size:16px; color:var(--accent); height:20px}
 
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity:0 }
+  to { transform: translateX(0); opacity:1 }
+}
 
 </style>
 </head>
@@ -96,7 +100,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
-      <button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>
+   <button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button>
     </div>
 </div>
 </header>
@@ -226,6 +230,12 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
+  // Minta izin notif pas pertama login
+async function requestNotifPermission(){
+  if("Notification" in window && Notification.permission !== "granted"){
+    await Notification.requestPermission();
+  }
+}
 // ===== INIT SUPABASE LANGSUNG =====
 const SUPABASE_URL = "https://xoritozxxglrnvohcjta.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvcml0b3p4eGdscm52b2hjanRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc4MjQsImV4cCI6MjEwMjEyMzgyNH0.9tz5HeKagb4efed-Q67C11nJ7RV4mUuD1t4oe-HNdDA";
@@ -279,7 +289,20 @@ function updateSaldoUI() { document.getElementById('saldoText').innerText = sald
 function updateBadgeChat(){ const badge = document.getElementById('badgeChat'); badge.style.display = jumlahNotifChat > 0? 'flex' : 'none'; badge.innerText = jumlahNotifChat; }
 function updateBadgeTeman(){ const badge = document.getElementById('badgeTeman'); badge.style.display = jumlahNotifTeman > 0? 'flex' : 'none'; badge.innerText = jumlahNotifTeman; }
 function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }
-
+function showDesktopNotif(pengirim, isiPesan, foto, lawanId){
+  if(Notification.permission === "granted"){
+    const notif = new Notification(`Pesan baru dari ${pengirim}`, {
+      body: isiPesan,
+      icon: foto || 'solusiin.png',
+      tag: 'bitera-chat'
+    });
+    // kalau klik notif langsung buka chat
+    notif.onclick = () => {
+      window.focus();
+      bukaChat(lawanId);
+    }
+  }
+}
 window.kirimRequest = async function(id){ await supabase.from('friendships').insert({requester_id: userLogin.id, addressee_id: id}); alert("Request terkirim"); loadPenyedia(); }
 window.batalRequest = async function(id){ await supabase.from('friendships').delete().match({requester_id: userLogin.id, addressee_id: id}); loadPenyedia(); loadPermintaan(); }
 window.terimaRequest = async function(id){ await supabase.from('friendships').update({status: 'accepted'}).match({requester_id: id, addressee_id: userLogin.id}); alert("Berhasil jadi teman"); loadPermintaan(); loadDaftarTeman(); loadMyProfile(); }
@@ -461,6 +484,7 @@ window.loginUser = async function() {
   saldoSekarang = userData.saldo || 0; 
   updateSaldoUI(); 
   updateUI(true); 
+  requestNotifPermission();
   loadMyProfile(); 
   closeModal('login'); 
 }
@@ -780,16 +804,50 @@ window.kirimRating = async function(){
   }
 }
 // FIX BUG SUARA NOTIF
+let audioNotif = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_d171a0e1c4.mp3'); // suara notif
+
 function subscribeRealtime(convId){
   if(channelChat) supabase.removeChannel(channelChat);
-  channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
-    if(payload.new.sender_id!== userLogin.id){
-      jumlahNotifChat++; updateBadgeChat(); 
+  
+  channelChat = supabase.channel(`chat-${convId}`)
+  .on('postgres_changes', 
+    { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, 
+    async payload => {
       
+      const pesanBaru = payload.new;
+      
+      // 1. KALAU BUKAN KIRIMAN SENDIRI
+      if(pesanBaru.sender_id !== userLogin.id){
+        
+        // Naikin badge merah
+        jumlahNotifChat++; 
+        updateBadgeChat(); 
+        
+        // Ambil data pengirim
+        const {data: pengirim} = await supabase.from('users').select('nama,foto').eq('id', pesanBaru.sender_id).single();
+        
+        // TARUH DISINI 👇
+        showDesktopNotif(pengirim.nama, pesanBaru.content, pengirim.foto, pesanBaru.sender_id);
+        
+        // 3. MUNCULIN SUARA
+        audioNotif.play().catch(()=>{});
+        
+        // 4. MUNCULIN TOAST DI ATAS KAN
+        let toast = document.createElement('div');
+        toast.innerText = `💬 ${pengirim.nama}: ${pesanBaru.content}`;
+        toast.style.cssText = `position:fixed; top:80px; right:20px; background:var(--accent); color:#fff; padding:12px 20px; border-radius:10px; z-index:999; box-shadow:var(--shadow); animation:slideIn 0.3s; cursor:pointer`;
+        toast.onclick = () => bukaChat(pesanBaru.sender_id); // klik toast langsung ke chat
+        document.body.appendChild(toast);
+        setTimeout(()=>toast.remove(), 4000);
+      }
+
+      // 5. KALAU LAGI BUKA CHATNYA, LANGSUNG LOAD PESAN
+      if(pesanBaru.conversation_id === convAktif) loadPesan();
+      
+      // 6. REFRESH DAFTAR CHAT
+      loadDaftarChat();
     }
-    if(payload.new.conversation_id === convAktif) loadPesan();
-    loadDaftarChat();
-  }).subscribe();
+  ).subscribe();
 }
 async function loadVideos(){ 
   const { data } = await supabase.from('videos').select('*, users:users!user_id(nama)').order('created_at', {ascending:false});
@@ -994,6 +1052,7 @@ window.saveProfile = async function(event){ // <-- TAMBAH event
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
+  resetNotifChat(); // <-- TAMBAH BARIS INI BIAR BADGE ILANG
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
 
@@ -1038,16 +1097,6 @@ window.kirimPesan = async function() {
   input.value = '';
 }
 
-function subscribeRealtime(convId){
-  if(channelChat) supabase.removeChannel(channelChat);
-  channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
-    if(payload.new.sender_id!== userLogin.id){
-      jumlahNotifChat++; updateBadgeChat();
-    }
-    if(payload.new.conversation_id === convAktif) loadPesan();
-    loadDaftarChat();
-  }).subscribe();
-}
 // ========== END SISTEM CHAT ==========
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
