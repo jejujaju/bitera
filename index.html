@@ -402,6 +402,7 @@ window.cariTeman = async function(){
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
 window.daftarUser = async function(event) { 
+  console.log("1. Tombol daftar diklik") // LOG
   const btn = event.target;
   btn.disabled = true;
   btn.innerText = "MENDAFTAR...";
@@ -410,29 +411,27 @@ window.daftarUser = async function(event) {
   const pass = document.getElementById('daftarPass').value; 
   
   if(!nama || !email || !pass) {
+    alert("Isi semua dulu");
     btn.disabled = false; btn.innerText = "DAFTAR";
-    return alert("Isi semua dulu");
+    return;
   }
-  if(!document.getElementById('setujuTOS').checked) {
-    btn.disabled = false; btn.innerText = "DAFTAR";
-    return alert("Setuju TOS dulu"); 
-  }
-  if(pass.length < 6) {
-    btn.disabled = false; btn.innerText = "DAFTAR";
-    return alert("Password minimal 6 karakter");
-  }
+  console.log("2. Validasi lolos", email) // LOG
 
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: pass,
   }); 
   
+  console.log("3. Hasil signUp:", data, error) // LOG PENTING
+  
   if(error) {
+    alert('Gagal Daftar Auth: ' + error.message); 
     btn.disabled = false; btn.innerText = "DAFTAR";
-    return alert('Gagal Daftar Auth: ' + error.message); 
+    return;
   } 
   
-  // INI YG KURANG: INSERT KE TABEL USERS MANUAL
+  // INSERT KE USERS
+  console.log("4. Mau insert ke users", data.user.id) // LOG
   const { error: insertError } = await supabase.from('users').insert({
     id: data.user.id,
     nama: nama,
@@ -440,6 +439,8 @@ window.daftarUser = async function(event) {
     saldo: 0,
     role: 'user'
   })
+
+  console.log("5. Hasil insert:", insertError) // LOG PENTING
 
   btn.disabled = false;
   btn.innerText = "DAFTAR";
