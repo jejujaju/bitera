@@ -401,7 +401,7 @@ window.cariTeman = async function(){
 }
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
-window.daftarUser = async function(event) { // <-- TAMBAH event
+window.daftarUser = async function(event) { 
   const btn = event.target;
   btn.disabled = true;
   btn.innerText = "MENDAFTAR...";
@@ -425,24 +425,28 @@ window.daftarUser = async function(event) { // <-- TAMBAH event
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: pass,
-    options: {
-      data: { nama: nama } // nama ini nanti dibaca trigger
-    }
   }); 
   
-  btn.disabled = false;
-  btn.innerText = "DAFTAR";
-
   if(error) {
-    if(error.message.includes('security purposes')){
-      return alert('Kebanyakan request. Tunggu 1 menit lalu coba lagi ya');
-    }
+    btn.disabled = false; btn.innerText = "DAFTAR";
     return alert('Gagal Daftar Auth: ' + error.message); 
   } 
   
-  // HAPUS BAGIAN INSERT KE users. UDAH DIURUS TRIGGER
-  
-  alert('Daftar berhasil! Cek email untuk verifikasi');
+  // INI YG KURANG: INSERT KE TABEL USERS MANUAL
+  const { error: insertError } = await supabase.from('users').insert({
+    id: data.user.id,
+    nama: nama,
+    email: email,
+    saldo: 0,
+    role: 'user'
+  })
+
+  btn.disabled = false;
+  btn.innerText = "DAFTAR";
+
+  if(insertError) return alert('Gagal simpan ke users: ' + insertError.message)
+
+  alert('Daftar berhasil!');
   closeModal('daftar'); 
 }
 window.loginUser = async function() { 
