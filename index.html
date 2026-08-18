@@ -1036,7 +1036,13 @@ window.batalApply = async function(transaksiId, harga){
 }
 
 window.setujuiApply = async function(transaksiId){
-  await supabase.from('market_transactions').update({status:'approved'}).eq('id', transaksiId);
+  const { data: tx } = await supabase.from('market_transactions').select('*, market_ads!inner(user_id)').eq('id', transaksiId).single();
+  
+  await supabase.from('market_transactions').update({
+    status:'approved',
+    pekerja_id: tx.market_ads.user_id // otomatis isi siapa yg punya iklan
+  }).eq('id', transaksiId);
+  
   alert('Apply disetujui. Buyer bisa VC sekarang');
   loadMarket();
 }
