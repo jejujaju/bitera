@@ -687,6 +687,38 @@ async function loadJobs(){
   }) 
 
 }
+
+async function loadLamaranMarket(){
+  if(!userLogin) return;
+  
+  const { data: myAds } = await supabase.from('market_ads').select('id').eq('user_id', userLogin.id);
+  if(!myAds || myAds.length === 0) return;
+  
+  const adIds = myAds.map(ad => ad.id);
+  
+  const { data: lamaran } = await supabase.from('market_transactions')
+    .select('*, buyer:users!buyer_id(*), market_ads(*)')
+    .in('ad_id', adIds)
+    .eq('status', 'pending');
+
+  const container = document.getElementById('daftarJob');
+  if(!lamaran || lamaran.length === 0) return;
+  
+  let html = `<div class="card"><h3>📩 LAMARAN MARKET MASUK</h3>`;
+  lamaran.forEach(l => {
+    html += `<div style="border:2px solid var(--border); padding:15px; border-radius:10px; margin-bottom:10px">
+      <h4>${l.market_ads.judul}</h4>
+      <p>Pelamar: <b>${l.buyer.nama}</b></p>
+      <p>Harga: <b>${l.harga_kept} Koin</b></p>
+      <div style="display:flex; gap:10px">
+        <button class="btn btn-sukses" onclick="setujuiApply('${l.id}')">SETUJUI</button>
+        <button class="btn btn-batal" onclick="tolakApply('${l.id}')">TOLAK</button>
+      </div>
+    </div>`
+  })
+  html += `</div>`;
+  container.innerHTML += html;
+}
 // LOAD LAMARAN MARKET BUAT PENJUAL
 async function loadLamaranMarket(){
   if(!userLogin) return;
@@ -1086,10 +1118,15 @@ async function loadTemanDiProfil(){
 window.loadMarket = async function(){
   if(!userLogin) return;
   const { data: ads } = await supabase.from('market_ads').select('*, users:users!user_id(nama)').eq('status', 'aktif').order('created_at', { ascending: false });
-  const { data: tx } = await supabase.from('market_transactions').select('*').eq('buyer_id', userLogin.id).in('status',['pending']);
+  
+  // INI YG DIUBAH: CUMA AMBIL PENDING
+  const { data: tx } = await supabase.from('market_transactions')
+    .select('*')
+    .eq('buyer_id', userLogin.id)
+    .eq('status','pending'); // <-- PAKAI EQ BUKAN IN
+  
   if(ads) renderMarket(ads, tx || []);
 }
-
 window.renderMarket = function(data, tx){
   const box = document.getElementById('daftarMarket'); 
   box.innerHTML = '';
@@ -1237,27 +1274,41 @@ window.lihatProfilOrang = async function(idOrang){
 showPage('profilOrangPage'); //
 
 }
- window.showPage = function(pageId, el){
+window.showPage = function(pageId, el){
+    // 1. MATIIN SEMUA MENU ACTIVE
     document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+    
+    // 2. SEMBUNYIIN SEMUA HALAMAN
     ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
         const page = document.getElementById(id);
         if(page) page.style.display='none';
     }); 
     
+    // 3. TAMPILIN HALAMAN YG DIKLIK
     document.getElementById(pageId).style.display='block';
     if(el) el.classList.add('active');
     
+    // 4. LOAD DATA SESUAI HALAMAN
     if(pageId==='jobsPage') { 
-  loadJobs(); 
-  loadLamaranMarket(); // TAMBAH INI
-}
+      loadJobs(); 
+      loadLamaranMarket(); // BUAT NAMPILIN LAMARAN MARKET
+    }
     if(pageId==='penyediaPage') loadPenyedia();
-    if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); } // <-- PASTIIN ADA INI
-    if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
+    if(pageId==='friendsPage') { 
+      loadPermintaan(); 
+      loadDaftarTeman(); 
+      loadDaftarChat(); 
+    }
+    if(pageId==='myProfilePage') { 
+      loadMyProfile(); 
+      loadTemanDiProfil(); 
+    }
     if(pageId==='videosPage') loadVideos();
-    if(pageId==='marketPage') loadMarket();
-    if(pageId==='chatPage') { loadDaftarChat(); }
-   }
+    if(pageId==='marketPage') loadMarket(); // BUAT NAMPILIN IKLAN
+    if(pageId==='chatPage') { 
+      loadDaftarChat(); 
+    }
+}
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
