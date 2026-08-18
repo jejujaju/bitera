@@ -685,8 +685,46 @@ async function loadJobs(){
       <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT WA / VC</a>${btn}
     </div>` 
   }) 
-}
 
+}
+// LOAD LAMARAN MARKET BUAT PENJUAL
+async function loadLamaranMarket(){
+  if(!userLogin) return;
+  
+  // 1. Ambil semua iklan punya aku
+  const { data: myAds } = await supabase.from('market_ads').select('id').eq('user_id', userLogin.id);
+  if(!myAds || myAds.length === 0) return document.getElementById('daftarJob').innerHTML += '<div class="card"><p>Kamu belum punya iklan market</p></div>';
+  
+  const adIds = myAds.map(ad => ad.id);
+  
+  // 2. Ambil semua transaksi yg apply ke iklan aku
+  const { data: lamaran } = await supabase.from('market_transactions')
+    .select('*, buyer:users!buyer_id(*), market_ads(*)')
+    .in('ad_id', adIds)
+    .eq('status', 'pending');
+
+  const container = document.getElementById('daftarJob');
+  if(!lamaran || lamaran.length === 0) {
+    container.innerHTML += `<div class="card"><h3>📩 Lamaran Market</h3><p>Belum ada yg apply iklan kamu</p></div>`;
+    return;
+  }
+  
+  let html = `<div class="card"><h3>📩 LAMARAN MARKET MASUK</h3>`;
+  lamaran.forEach(l => {
+    html += `<div style="border:2px solid var(--border); padding:15px; border-radius:10px; margin-bottom:10px">
+      <h4>${l.market_ads.judul}</h4>
+      <p>Pelamar: <b>${l.buyer.nama}</b></p>
+      <p>Harga: <b>${l.harga_kept} Koin</b></p>
+      <div style="display:flex; gap:10px">
+        <button class="btn btn-sukses" onclick="setujuiApply('${l.id}')">SETUJUI</button>
+        <button class="btn btn-batal" onclick="tolakApply('${l.id}')">TOLAK</button>
+        <button class="btn" onclick="bukaChat('${l.buyer.id}')">CHAT</button>
+      </div>
+    </div>`
+  })
+  html += `</div>`;
+  container.innerHTML += html;
+}
 // 2. GANTI AMBILJOB JADI MASUK KE TABEL LAMARAN
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
@@ -1179,7 +1217,19 @@ window.setujuiApply = async function(transaksiId){
   alert('Apply disetujui. Buyer bisa VC sekarang');
   loadMarket();
 }
-
+window.tolakApply = async function(transaksiId){
+  const { data: tx } = await supabase.from('market_transactions').select('harga_kept, buyer_id').eq('id', transaksiId).single();
+  
+  // 1. Kembalikan saldo ke buyer
+  const { data: buyer } = await supabase.from('users').select('saldo').eq('id', tx.buyer_id).single();
+  await supabase.from('users').update({saldo: buyer.saldo + tx.harga_kept}).eq('id', tx.buyer_id);
+  
+  // 2. Ubah status jadi ditolak
+  await supabase.from('market_transactions').update({status:'ditolak'}).eq('id', transaksiId);
+  
+  alert('Lamaran ditolak. Saldo buyer dikembalikan');
+  loadLamaranMarket();
+}
 window.selesaiMarket = async function(transaksiId, pekerjaId){
   marketApplyId = transaksiId;
   pekerjaRatingId = pekerjaId;
@@ -1262,7 +1312,10 @@ showPage('profilOrangPage'); //
     document.getElementById(pageId).style.display='block';
     if(el) el.classList.add('active');
     
-    if(pageId==='jobsPage') loadJobs();
+    if(pageId==='jobsPage') { 
+  loadJobs(); 
+  loadLamaranMarket(); // TAMBAH INI
+}
     if(pageId==='penyediaPage') loadPenyedia();
     if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); } // <-- PASTIIN ADA INI
     if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
