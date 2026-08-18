@@ -80,35 +80,56 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 }
 
 
-/* MARKET CARD KOTAK ALA HP */
+/* MARKET CARD KECIL VERTIKAL */
 #daftarMarket {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* biar 3-4 kolom di PC */
-  gap: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* kecilin minmax biar muat 4-5 kolom */
+  gap: 20px;
+  padding: 10px;
 }
 
 #daftarMarket .card {
-  padding: 0; /* hapus padding biar gambar mepet */
-  overflow: hidden; /* biar gambar ga keluar */
+  background: #fff;
+  border-radius: 15px;
+  padding: 0; /* padding 0 biar gambar mepet */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: 0.2s;
 }
+#daftarMarket .card:hover { transform: translateY(-3px); }
 
+/* INI KUNCINYA: BIKIN GAMBAR JADI VERTIKAL 3:4 */
 #daftarMarket .card img {
   width: 100%;
-  height: 280px; /* BIKIN KOTAK 1:1 */
-  object-fit: cover; /* biar ga gepeng */
-  border-radius: 15px 15px 0 0;
-  margin-bottom: 0;
+  height: 300px; /* VERTIKAL TINGGI */
+  object-fit: cover; /* biar ga gepeng, langsung crop tengah */
+  border-radius: 0;
 }
 
-#daftarMarket .card h3, 
-#daftarMarket .card p,
-#daftarMarket .card .saldo-box,
-#daftarMarket .card button {
-  padding: 0 15px; /* kasih padding ke text nya aja */
+/* ISI CARD */
+#daftarMarket .card h3 { 
+  font-size: 16px; 
+  padding: 10px 12px 0 12px; 
+  margin: 0;
 }
-#daftarMarket .card h3 { padding-top: 15px; }
-#daftarMarket .card button { margin: 10px 15px 15px 15px; }
+#daftarMarket .card p { 
+  font-size: 13px; 
+  padding: 5px 12px; 
+  margin: 0;
+  color: #555;
+}
+#daftarMarket .card .saldo-box {
+  margin: 8px 12px;
+  font-size: 14px;
+  padding: 8px;
+}
+#daftarMarket .card button {
+  margin: 0 12px 12px 12px;
+  font-size: 14px;
+  padding: 10px;
+}
 
 </style>
 </head>
