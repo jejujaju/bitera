@@ -131,6 +131,14 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   padding: 10px;
 }
 
+#daftarMarket .card img {
+  cursor: pointer; /* TAMBAHIN INI */
+  transition: 0.3s;
+}
+#daftarMarket .card img:hover {
+  opacity: 0.9;
+}
+
 </style>
 </head>
 <body>
@@ -287,6 +295,13 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
         <div id="bintangWrap"></div>
       </div>
     </div>
+
+
+    <!-- MODAL FULLSIZE GAMBAR MARKET -->
+<div id="imgFull" class="modal" style="background: rgba(0,0,0,0.9);">
+  <span class="close" onclick="closeModal('imgFull')" style="font-size: 40px; color: white;">&times;</span>
+  <img id="imgFullSrc" style="max-width: 90%; max-height: 90%; margin: 5% auto; display: block; border-radius: 15px;">
+</div>
 
 <footer>bitera.vercel.app 2026</footer>
 
@@ -1028,6 +1043,72 @@ async function loadTemanDiProfil(){
   document.getElementById('myJumlahTeman').innerText = `${jumlah} Teman`;
   document.getElementById('myJumlahTeman2').innerText = jumlah;
 }
+
+// 1. LOAD SEMUA IKLAN DARI SUPABASE
+window.loadMarket = async function(){
+  const { data, error } = await supabase
+    .from('market_ads')
+    .select('*, users(nama)') // join ke tabel users buat ambil nama
+    .eq('status', 'aktif')
+    .order('created_at', { ascending: false });
+  
+  if(error) return console.log(error);
+  renderMarket(data);
+}
+
+// 2. RENDER KE HTML
+window.renderMarket = function(data){
+  const box = document.getElementById('daftarMarket'); 
+  box.innerHTML = '';
+  if(!data.length) return box.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Belum ada iklan. Jadilah yg pertama!</p>';
+  
+  data.forEach(ad=>{
+    box.innerHTML += `
+      <div class="card">
+        <img src="${ad.foto_url}" onclick="openFullImg('${ad.foto_url}')">
+        <h3>${ad.judul}</h3>
+        <p>${ad.deskripsi}</p>
+        <p><b>Bahasa:</b> ${ad.bahasa} | <b>Durasi:</b> ${ad.durasi} menit</p>
+        <p><b>Oleh:</b> ${ad.users?.nama || 'Anonim'}</p>
+        <div class="saldo-box">HARGA: ${ad.harga_koin} Koin</div>
+        <button onclick="applyIklan('${ad.id}')">APPLY SEKARANG</button>
+      </div>
+    `
+  })
+}
+
+// 3. FUNGSI APPLY
+window.applyIklan = async function(adId){
+  if(!userLogin) return alert("Login dulu");
+  
+  const { data: ad } = await supabase.from('market_ads').select('harga_koin, user_id').eq('id', adId).single();
+  
+  if(userLogin.saldo_koin < ad.harga_koin) return alert("Koin tidak cukup");
+  if(userLogin.id === ad.user_id) return alert("Ini iklan kamu sendiri");
+
+  // potong koin buyer
+  await supabase.from('users').update({saldo_koin: userLogin.saldo_koin - ad.harga_koin}).eq('id', userLogin.id);
+
+  // bikin transaksi pending
+  await supabase.from('market_transactions').insert({
+    ad_id: adId,
+    buyer_id: userLogin.id,
+    harga_kept: ad.harga_koin,
+    status: 'pending'
+  });
+  alert("Berhasil Apply! Tunggu di approve penjual");
+  checkUser();
+}
+
+// 4. FUNGSI BUKA GAMBAR FULL
+window.openFullImg = function(url){
+  document.getElementById('imgFullSrc').src = url;
+  document.getElementById('imgFull').style.display = 'block';
+}
+
+// JANGAN LUPA PANGGIL PAS BUKA MENU MARKET
+// cari di checkUser() bagian if(activeTab==='market') 
+// tambahin: loadMarket();
 // 1. Tambah tombol di HTML marketPage: <button class="btn" onclick="openModal('postIklan')">+ PASANG IKLAN</button>
 
 window.buatIklan = async function(){
@@ -1316,6 +1397,8 @@ supabase.auth.getSession().then(async ({ data: { session }}) => {
 })
 
 }); // 
+
+
 </script>
 </body>
 </html>
