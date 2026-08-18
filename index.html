@@ -1032,36 +1032,7 @@ async function loadVideos(){
     </div>`
   })
 }
-async function loadMarket(){ 
-  if(!userLogin) return;
-  // 1. Ambil semua iklan
-  const { data: ads } = await supabase.from('market_ads').select('*, users:users!user_id(*)').eq('status','aktif').order('created_at', {ascending:false});
-  // 2. Ambil transaksi user yg masih pending
-  const { data: tx } = await supabase.from('market_transactions').select('*').eq('buyer_id', userLogin.id).eq('status','pending');
 
-  const container = document.getElementById('daftarMarket'); container.innerHTML = '';
-  if(!ads || ads.length === 0) return container.innerHTML = '<p>Belum ada iklan</p>';
-  
-  ads.forEach(ad=>{
-    const myTx = tx.find(t => t.ad_id === ad.id); // cek udah apply belum
-    let btn = `<button class="btn" style="width:100%" onclick="applyIklan('${ad.id}', ${ad.harga_koin})">APPLY SEKARANG</button>`;
-    
-    if(myTx){ // kalau udah apply
-      btn = `<button class="btn btn-batal" style="width:100%" onclick="batalApply('${myTx.id}', ${myTx.harga_kept})">BATALKAN APPLY</button>
-             <p style="text-align:center; color:#E74C3C; margin-top:8px">Status: Menunggu Persetujuan</p>`;
-    }
-
-    container.innerHTML += `<div class="card">
-      <img src="${ad.foto_url}" style="width:100%; height:180px; object-fit:cover; border-radius:10px; margin-bottom:10px">
-      <h3>${ad.judul}</h3>
-      <p>${ad.deskripsi}</p>
-      <p><b>Bahasa: ${ad.bahasa} | Durasi: ${ad.durasi} menit</b></p>
-      <p>Oleh: ${ad.users.nama}</p>
-      <div class="saldo-box" style="width:100%; justify-content:center; margin:10px 0">HARGA: ${ad.harga_koin} Koin</div>
-      ${btn}
-    </div>`
-  })
-}
 async function loadMyProfile(){ 
   if(!userLogin) return; 
   const {data, error} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
@@ -1117,25 +1088,24 @@ async function loadTemanDiProfil(){
 // 1. LOAD SEMUA IKLAN DARI SUPABASE
 window.loadMarket = async function(){
   if(!userLogin) return;
-  const { data: ads } = await supabase.from('market_ads').select('*, users:users!user_id(nama)').eq('status', 'aktif').order('created_at', { ascending: false });
-  
-  // INI YG DIUBAH: CUMA AMBIL PENDING
-  const { data: tx } = await supabase.from('market_transactions')
-    .select('*')
-    .eq('buyer_id', userLogin.id)
-    .eq('status','pending'); // <-- PAKAI EQ BUKAN IN
-  
-  if(ads) renderMarket(ads, tx || []);
+  try{
+    const { data: ads, error } = await supabase.from('market_ads').select('*, users:users!user_id(id,nama,foto)').eq('status', 'aktif').order('created_at', { ascending: false });
+    if(error) throw error;
+
+    const { data: tx } = await supabase.from('market_transactions').select('*').eq('buyer_id', userLogin.id).eq('status','pending');
+    renderMarket(ads || [], tx || []);
+  }catch(err){ console.log(err) }
 }
+
 window.renderMarket = function(data, tx){
-  const box = document.getElementById('daftarMarket'); 
+  const box = document.getElementById('daftarMarket');
   box.innerHTML = '';
   if(!data.length) return box.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Belum ada iklan</p>';
-  
+
   data.forEach(ad=>{
-    const myTx = tx.find(t => t.ad_id === ad.id && t.status === 'pending');
+    const myTx = tx.find(t => t.ad_id === ad.id);
     let btn = `<button class="btn" style="width:100%" onclick="applyIklan('${ad.id}', ${ad.harga_koin})">APPLY SEKARANG</button>`;
-    if(myTx){ 
+    if(myTx){
       btn = `<button class="btn btn-batal" style="width:100%" onclick="batalApply('${myTx.id}', ${myTx.harga_kept}, event)">BATALKAN APPLY</button>
              <p style="text-align:center; color:#E74C3C; margin-top:8px">Menunggu Persetujuan</p>`;
     }
@@ -1144,63 +1114,64 @@ window.renderMarket = function(data, tx){
       <img src="${ad.foto_url}" onclick="openFullImg('${ad.foto_url}')" style="cursor:pointer; width:100%; height:300px; object-fit:cover;">
       <h3>${ad.judul}</h3><p>${ad.deskripsi}</p>
       <p><b>Bahasa:</b> ${ad.bahasa} | <b>Durasi:</b> ${ad.durasi} menit</p>
-      <p><b>Oleh:</b> ${ad.users?.nama || 'Anonim'}</p>
+      <p><b>Oleh:</b> <span style="color:var(--accent); cursor:pointer; font-weight:bold" onclick="lihatProfilOrang('${ad.user_id}')">${ad.users?.nama || 'Anonim'}</span></p> <!-- INI UDAH BISA KLIK -->
       <div class="saldo-box" style="width:100%">HARGA: ${ad.harga_koin} Koin</div>
       ${btn}
     </div>`
   })
 }
 
+window.buatIklan = async function(){
+  if(!userLogin) return alert("Login dulu");
+  const btn = event.target; btn.disabled = true; btn.innerText = "UPLOADING...";
+  try{
+    const judul = document.getElementById('judulIklan').value;
+    const deskripsi = document.getElementById('deskripsiIklan').value;
+    const harga = parseFloat(document.getElementById('hargaIklan').value);
+    const durasi = document.getElementById('durasiIklan').value;
+    const bahasa = document.getElementById('bahasaIklan').value;
+    const file = document.getElementById('fotoIklan').files[0];
+    if(!judul ||!harga ||!file) return alert("Isi semua + upload banner");
+
+    const compressedFile = await compressImage(file, 1000);
+    const filePath = `market/${userLogin.id}-${Date.now()}.jpg`;
+    const { error: upErr } = await supabase.storage.from('market-banners').upload(filePath, compressedFile);
+    if(upErr) throw upErr;
+    const { data } = await supabase.storage.from('market-banners').getPublicUrl(filePath);
+
+    await supabase.from('market_ads').insert({
+      user_id: userLogin.id, judul, deskripsi, harga_koin: harga,
+      durasi, bahasa, foto_url: data.publicUrl, status: 'aktif'
+    });
+    alert('Iklan berhasil diposting!');
+    closeModal('postIklan');
+    loadMarket();
+  }catch(err){ alert("Gagal: " + err.message) }
+  btn.disabled = false; btn.innerText = "POST IKLAN";
+}
+
 window.applyIklan = async function(adId, harga){
   if(!userLogin) return alert("Login dulu");
   if(saldoSekarang < harga) return alert("Saldo tidak cukup");
-  
+  if(userLogin.id === adId) return alert("Ini iklan kamu sendiri"); // nanti tambahin cek
+
   const saldoBaru = saldoSekarang - harga;
   await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
   await supabase.from('market_transactions').insert({ ad_id: adId, buyer_id: userLogin.id, harga_kept: harga, status: 'pending' });
-  
+
   saldoSekarang = saldoBaru; updateSaldoUI(); alert('Berhasil Apply!'); loadMarket();
 }
 
 window.batalApply = async function(transaksiId, harga, event){
-  const btn = event.target; btn.disabled = true; btn.innerText = "MEMBATALKAN...";
+  const btn = event.target; btn.disabled = true;
   const { data: tx } = await supabase.from('market_transactions').select('status').eq('id', transaksiId).single();
-  if(tx.status !== 'pending') return alert("Udah ga bisa dibatalkan");
+  if(tx.status!== 'pending') return alert("Udah ga bisa dibatalkan");
 
   const saldoBaru = saldoSekarang + harga;
   await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
   await supabase.from('market_transactions').update({status:'batal'}).eq('id', transaksiId);
-  
-  saldoSekarang = saldoBaru; updateSaldoUI(); alert('Dibatalkan'); loadMarket();
-}
 
-window.openFullImg = function(url){
-  document.getElementById('imgFullSrc').src = url;
-  document.getElementById('imgFull').style.display = 'flex';
-}
-window.setujuiApply = async function(transaksiId){
-  const { data: tx } = await supabase.from('market_transactions').select('*, market_ads!inner(user_id)').eq('id', transaksiId).single();
-  
-  await supabase.from('market_transactions').update({
-    status:'approved',
-    pekerja_id: tx.market_ads.user_id // otomatis isi siapa yg punya iklan
-  }).eq('id', transaksiId);
-  
-  alert('Apply disetujui. Buyer bisa VC sekarang');
-  loadMarket();
-}
-window.tolakApply = async function(transaksiId){
-  const { data: tx } = await supabase.from('market_transactions').select('harga_kept, buyer_id').eq('id', transaksiId).single();
-  
-  // 1. Kembalikan saldo ke buyer
-  const { data: buyer } = await supabase.from('users').select('saldo').eq('id', tx.buyer_id).single();
-  await supabase.from('users').update({saldo: buyer.saldo + tx.harga_kept}).eq('id', tx.buyer_id);
-  
-  // 2. Ubah status jadi ditolak
-  await supabase.from('market_transactions').update({status:'ditolak'}).eq('id', transaksiId);
-  
-  alert('Lamaran ditolak. Saldo buyer dikembalikan');
-  loadLamaranMarket();
+  saldoSekarang = saldoBaru; updateSaldoUI(); alert('Dibatalkan'); loadMarket();
 }
 window.selesaiMarket = async function(transaksiId, pekerjaId){
   marketApplyId = transaksiId;
