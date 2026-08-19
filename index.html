@@ -272,7 +272,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <input class="input" id="durasiIklan" placeholder="Durasi Menit: 30">
     <input class="input" id="bahasaIklan" placeholder="Bahasa: Thailand">
     <input type="file" id="fotoIklan" accept="image/*" class="input">
-    <button class="btn" onclick="buatIklan()">POST IKLAN</button>
+   <button class="btn" onclick="buatIklan(event)">POST IKLAN</button> 
     <button class="btn btn-batal" onclick="closeModal('postIklan')">TUTUP</button>
   </div>
 </div>
@@ -972,17 +972,19 @@ window.loadMarket = async function(){
 
 window.renderMarket = function(data, tx){
   const box = document.getElementById('daftarMarket'); box.innerHTML = '';
+  if(!data.length) return box.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Belum ada iklan</p>';
+
   data.forEach(ad=>{
     const myTx = tx.find(t => t.ad_id === ad.id);
     const isOwner = userLogin.id === ad.user_id;
     const isBuyer = myTx && myTx.buyer_id === userLogin.id;
-    
+
     let btn = '';
-    if(!isOwner && ad.status === 'aktif' && !myTx) btn = `<button class="btn" onclick="applyIklan('${ad.id}', ${ad.harga_koin}, '${ad.user_id}')">APPLY</button>`;
-    if(isBuyer && myTx.status === 'pending') btn = `<button class="btn btn-batal" onclick="batalApply('${myTx.id}')">BATAL</button>`;
+    if(!isOwner && ad.status === 'aktif' &&!myTx) btn = `<button class="btn" onclick="applyIklan('${ad.id}', ${ad.harga_koin}, '${ad.user_id}')">APPLY</button>`;
+    if(isBuyer && myTx && myTx.status === 'pending') btn = `<button class="btn btn-batal" onclick="batalApply('${myTx.id}')">BATAL</button>`;
     if(isOwner && ad.status === 'aktif') btn = `<button class="btn btn-sukses" onclick="lihatPelamarMarket('${ad.id}')">LIHAT PELAMAR</button><button class="btn btn-batal" onclick="hapusIklan('${ad.id}')">HAPUS</button>`;
-    if(isOwner && ad.status === 'dikerjakan') btn = `<button class="btn btn-sukses" onclick="selesaiMarket('${myTx.id}')">SELESAI KERJA</button>`;
-    if(isBuyer && myTx.status === 'menunggu_konfirmasi') btn = `<button class="btn btn-sukses" onclick="konfirmasiMarket('${myTx.id}')">KONFIRMASI</button>`;
+    if(isOwner && ad.status === 'dikerjakan' && myTx) btn = `<button class="btn btn-sukses" onclick="selesaiMarket('${myTx.id}')">SELESAI KERJA</button>`;
+    if(isBuyer && myTx && myTx.status === 'menunggu_konfirmasi') btn = `<button class="btn btn-sukses" onclick="konfirmasiMarket('${myTx.id}')">KONFIRMASI</button>`;
 
     box.innerHTML += `<div class="card"><img src="${ad.foto_url}" onclick="openFullImg('${ad.foto_url}')"><h3>${ad.judul}</h3><p>${ad.harga_koin} Koin</p>${btn}</div>`
   })
@@ -1035,6 +1037,40 @@ window.hapusIklan = async function(adId){
   for(const t of tx){ await batalApply(t.id) }
   await supabase.from('market_ads').delete().eq('id', adId);
   loadMarket();
+}
+
+window.buatIklan = async function(event){
+  if(!userLogin) return alert("Login dulu");
+  const btn = event.target; btn.disabled = true; btn.innerText = "UPLOADING...";
+  try{
+    const judul = document.getElementById('judulIklan').value;
+    const deskripsi = document.getElementById('deskripsiIklan').value;
+    const harga = parseFloat(document.getElementById('hargaIklan').value);
+    const durasi = document.getElementById('durasiIklan').value;
+    const bahasa = document.getElementById('bahasaIklan').value;
+    const file = document.getElementById('fotoIklan').files[0];
+    if(!judul ||!harga ||!file) return alert("Isi semua + upload banner");
+
+    const compressedFile = await compressImage(file, 1000);
+    const filePath = `market/${userLogin.id}-${Date.now()}.jpg`;
+    const { error: upErr } = await supabase.storage.from('market-banners').upload(filePath, compressedFile);
+    if(upErr) throw upErr;
+    const { data } = await supabase.storage.from('market-banners').getPublicUrl(filePath);
+
+    await supabase.from('market_ads').insert({
+      user_id: userLogin.id, judul, deskripsi, harga_koin: harga,
+      durasi, bahasa, foto_url: data.publicUrl, status: 'aktif'
+    });
+    alert('Iklan berhasil diposting!');
+    closeModal('postIklan');
+    loadMarket();
+  }catch(err){ alert("Gagal: " + err.message) }
+  btn.disabled = false; btn.innerText = "POST IKLAN";
+}
+
+window.openFullImg = function(src){
+  document.getElementById('imgFullSrc').src = src;
+  openModal('imgFull');
 }
 // Nanti di kirimRating() tinggal tambah if: kalau dari market, koin cair ke pekerja
 
