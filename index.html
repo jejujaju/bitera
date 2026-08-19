@@ -978,15 +978,47 @@ window.renderMarket = function(data, tx){
     const myTx = tx.find(t => t.ad_id === ad.id);
     const isOwner = userLogin.id === ad.user_id;
     const isBuyer = myTx && myTx.buyer_id === userLogin.id;
-
+    
     let btn = '';
-    if(!isOwner && ad.status === 'aktif' &&!myTx) btn = `<button class="btn" onclick="applyIklan('${ad.id}', ${ad.harga_koin}, '${ad.user_id}')">APPLY</button>`;
-    if(isBuyer && myTx && myTx.status === 'pending') btn = `<button class="btn btn-batal" onclick="batalApply('${myTx.id}')">BATAL</button>`;
-    if(isOwner && ad.status === 'aktif') btn = `<button class="btn btn-sukses" onclick="lihatPelamarMarket('${ad.id}')">LIHAT PELAMAR</button><button class="btn btn-batal" onclick="hapusIklan('${ad.id}')">HAPUS</button>`;
-    if(isOwner && ad.status === 'dikerjakan' && myTx) btn = `<button class="btn btn-sukses" onclick="selesaiMarket('${myTx.id}')">SELESAI KERJA</button>`;
-    if(isBuyer && myTx && myTx.status === 'menunggu_konfirmasi') btn = `<button class="btn btn-sukses" onclick="konfirmasiMarket('${myTx.id}')">KONFIRMASI</button>`;
+    let statusInfo = `<p style="color:gray; font-size:12px">Status: <b>${ad.status}</b></p>`;
+    
+    // TOMBOL ALA GRAB
+    if(!isOwner && ad.status === 'aktif' && !myTx) 
+      btn = `<button class="btn" onclick="applyIklan('${ad.id}', ${ad.harga_koin}, '${ad.user_id}')">APPLY VC</button>`;
+    
+    if(isBuyer && myTx && myTx.status === 'pending') 
+      btn = `<button class="btn btn-batal" onclick="batalApply('${myTx.id}')">BATAL APPLY</button>`;
+    
+    if(isOwner && ad.status === 'aktif') 
+      btn = `<button class="btn btn-sukses" onclick="lihatPelamarMarket('${ad.id}')">LIHAT PELAMAR</button>`;
+    
+    if(isOwner && ad.status === 'dikerjakan' && myTx) 
+      btn = `<button class="btn btn-sukses" onclick="selesaiMarket('${myTx.id}')">✅ SELESAI VC & UPLOAD BUKTI</button>`;
+    
+    if(isBuyer && myTx && myTx.status === 'menunggu_konfirmasi') 
+      btn = `<button class="btn btn-sukses" onclick="konfirmasiMarket('${myTx.id}', '${ad.user_id}')">CEK BUKTI & KONFIRMASI</button>`;
 
-    box.innerHTML += `<div class="card"><img src="${ad.foto_url}" onclick="openFullImg('${ad.foto_url}')"><h3>${ad.judul}</h3><p>${ad.harga_koin} Koin</p>${btn}</div>`
+    // CARD BARU: ADA FOTO + NAMA PENJUAL + TOMBOL CHAT
+    box.innerHTML += `<div class="card">
+      <img src="${ad.foto_url}" onclick="openFullImg('${ad.foto_url}')">
+      <h3>${ad.judul}</h3>
+      <p>${ad.deskripsi}</p>
+      <p><b>Bahasa:</b> ${ad.bahasa} | <b>Durasi:</b> ${ad.durasi} menit</p>
+      
+      <!-- INI YG BARU: INFO PENJUAL -->
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--border)">
+        <img src="${ad.users?.foto||'https://ui-avatars.com/api/?name='+ad.users?.nama}" style="width:40px; height:40px; border-radius:50%; cursor:pointer" onclick="lihatProfilOrang('${ad.user_id}')">
+        <div>
+          <p style="margin:0; font-size:12px">Dijual oleh:</p>
+          <p style="margin:0; font-weight:bold; color:var(--accent); cursor:pointer" onclick="lihatProfilOrang('${ad.user_id}')">${ad.users?.nama || 'Anonim'}</p>
+        </div>
+        <button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${ad.user_id}')">💬 CHAT</button>
+      </div>
+
+      ${statusInfo}
+      <div class="saldo-box">HARGA: ${ad.harga_koin} Koin</div>
+      ${btn}
+    </div>`
   })
 }
 
@@ -1037,6 +1069,54 @@ window.hapusIklan = async function(adId){
   for(const t of tx){ await batalApply(t.id) }
   await supabase.from('market_ads').delete().eq('id', adId);
   loadMarket();
+}
+
+// 1. LIHAT PELAMAR: NAMANYA BISA DIKLIK KE PROFIL + CHAT
+window.lihatPelamarMarket = async function(adId){
+  const { data: tx } = await supabase.from('market_transactions')
+    .select('*, buyer:users!buyer_id(*)')
+    .eq('ad_id', adId).eq('status','pending');
+  
+  let html = `<button class="btn btn-batal" onclick="loadMarket()">⬅️ KEMBALI</button><h3>Daftar Pelamar</h3>`;
+  
+  tx.forEach(t => { 
+    html += `<div class="card" style="display:flex; align-items:center; justify-content:space-between">
+      <div style="display:flex; align-items:center; gap:10px">
+        <img src="${t.buyer.foto||'https://ui-avatars.com/api/?name='+t.buyer.nama}" style="width:50px; height:50px; border-radius:50%; cursor:pointer" onclick="lihatProfilOrang('${t.buyer.id}')">
+        <div>
+          <p style="margin:0; font-weight:bold; color:var(--accent); cursor:pointer" onclick="lihatProfilOrang('${t.buyer.id}')">${t.buyer.nama}</p>
+          <p style="margin:0; font-size:12px">${t.harga_kept} Koin</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:5px">
+        <button class="btn btn-sm" onclick="bukaChat('${t.buyer.id}')">💬 CHAT</button>
+        <button class="btn btn-sukses btn-sm" onclick="setujuiApply('${t.id}')">SETUJUI</button>
+      </div>
+    </div>` 
+  })
+  document.getElementById('daftarMarket').innerHTML = html;
+}
+
+// 2. SELESAI MARKET: MUNCUL MODAL UPLOAD BUKTI
+window.selesaiMarket = async function(txId){
+  marketApplyId = txId;
+  openModal('selesaiModal'); // pake modal yg udah ada buat upload bukti job
+}
+
+// 3. KONFIRMASI MARKET: CEK BUKTI DULU BARU RATING
+window.konfirmasiMarket = async function(txId, sellerId){
+  marketApplyId = txId;
+  pekerjaRatingId = sellerId; // seller = yg dirating
+  
+  const { data: tx } = await supabase.from('market_transactions').select('bukti_url').eq('id', txId).single();
+  if(!tx.bukti_url) return alert("Penjual belum upload bukti VC");
+
+  openModal('ratingModal');
+  document.getElementById('ratingJobJudul').innerHTML = `
+    <img src="${tx.bukti_url}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
+    <p style="text-align:center; font-weight:bold">Cek bukti VC. Kalau ok, beri rating</p>
+  `;
+  document.getElementById('bintangWrap').innerHTML = `<button class="btn" onclick="kirimRatingMarket()">KIRIM RATING & CAIRKAN DANA</button>`;
 }
 
 window.buatIklan = async function(event){
