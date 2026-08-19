@@ -160,7 +160,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
-   <button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button>
+  <button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>
     </div>
 </div>
 </header>
@@ -197,11 +197,26 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 </div>
 <div id="videosPage" class="container" style="display:none"><h2>📹 VIDEO</h2><button class="btn" onclick="openModal('uploadVideo')">+ TAMBAH VIDEO</button><div id="daftarVideo" class="grid"></div></div>
 <div id="marketPage" class="container" style="display:none">
-  <h2>🛍️ MARKET IKLAN VC</h2>
-  <button class="btn" onclick="openModal('postIklan')" style="margin-bottom:20px">+ PASANG IKLAN</button> <!-- INI TOMBOLNYA -->
-  <div id="daftarMarket" class="grid"></div>
-</div>
+  <h2>🛍️ MARKET</h2>
+  
+  <!-- TAB BARU -->
+  <div style="display:flex; gap:10px; margin-bottom:20px">
+    <button class="btn-sm btn-menu active" id="tabIklan" onclick="switchMarketTab('iklan')">📹 IKLAN VC</button>
+    <button class="btn-sm btn-menu" id="tabJob" onclick="switchMarketTab('job')">💼 MARKET JOB</button>
+  </div>
 
+  <!-- KONTEN IKLAN VC -->
+  <div id="marketIklanContent">
+    <button class="btn" onclick="openModal('postIklan')" style="margin-bottom:20px">+ PASANG IKLAN VC</button>
+    <div id="daftarMarket" class="grid"></div>
+  </div>
+
+  <!-- KONTEN MARKET JOB -->
+  <div id="marketJobContent" style="display:none">
+    <button class="btn" onclick="openModal('postMarketJob')" style="margin-bottom:20px">+ POST JOB MARKET</button>
+    <div id="daftarMarketJob" class="grid"></div>
+  </div>
+</div>
 <div id="friendsPage" class="container" style="display:none">
   <h2>👥 TEMAN & PERMINTAAN</h2>
   <div class="card"><h3>📩 Permintaan Pertemanan</h3><div id="daftarPermintaan"></div></div>
@@ -274,6 +289,19 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <input type="file" id="fotoIklan" accept="image/*" class="input">
    <button class="btn" onclick="buatIklan(event)">POST IKLAN</button> 
     <button class="btn btn-batal" onclick="closeModal('postIklan')">TUTUP</button>
+  </div>
+</div>
+
+<div class="modal" id="postMarketJob">
+  <div class="modal-content">
+    <h2>POST JOB DI MARKET</h2>
+    <p style="font-size:12px; color:gray">Job ini akan muncul di halaman JOBS juga</p>
+    <input class="input" id="judulMarketJob" placeholder="Judul Job">
+    <input class="input" id="deskripsiMarketJob" placeholder="Detail">
+    <input class="input" type="number" id="hadiahMarketJob" placeholder="Reward Koin">
+    <input class="input" id="noWaMarketJob" placeholder="No WA 628xxx">
+    <button class="btn" onclick="buatMarketJob(event)">POST & KUNCI DANA</button>
+    <button class="btn btn-batal" onclick="closeModal('postMarketJob')">TUTUP</button>
   </div>
 </div>
 <div class="modal" id="selesaiModal">
@@ -1151,6 +1179,87 @@ window.buatIklan = async function(event){
 window.openFullImg = function(src){
   document.getElementById('imgFullSrc').src = src;
   openModal('imgFull');
+}
+
+
+// SWITCH TAB MARKET
+window.switchMarketTab = function(tab){
+  document.getElementById('tabIklan').classList.remove('active');
+  document.getElementById('tabJob').classList.remove('active');
+  document.getElementById('marketIklanContent').style.display = 'none';
+  document.getElementById('marketJobContent').style.display = 'none';
+  
+  if(tab === 'iklan'){
+    document.getElementById('tabIklan').classList.add('active');
+    document.getElementById('marketIklanContent').style.display = 'block';
+  } else {
+    document.getElementById('tabJob').classList.add('active');
+    document.getElementById('marketJobContent').style.display = 'block';
+    loadMarketJobs(); // load job khusus market
+  }
+}
+
+// POST JOB DARI MARKET
+window.buatMarketJob = async function(event){
+  if(!userLogin) return alert("Login dulu"); 
+  const btn = event.target; btn.disabled = true; btn.innerText = "POSTING...";
+  
+  const judul = document.getElementById('judulMarketJob').value; 
+  const deskripsi = document.getElementById('deskripsiMarketJob').value; 
+  const hadiah = parseInt(document.getElementById('hadiahMarketJob').value); 
+  const noWa = document.getElementById('noWaMarketJob').value; 
+  
+  if(!judul ||!hadiah) return alert("Isi semua");
+  if(saldoSekarang < hadiah) return alert("Saldo tidak cukup");
+
+  const saldoBaru = saldoSekarang - hadiah;
+  const { error: saldoErr } = await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
+  if(saldoErr) return alert(saldoErr.message);
+  
+  // INI KUNCINYA: INSERT KE market_jobs BUKAN jobs
+  const { error } = await supabase.from('market_jobs').insert({
+    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'
+  });
+  if(error) return alert(error.message);
+
+  saldoSekarang = saldoBaru;
+  updateSaldoUI(); 
+  alert('Job Market diposting! Saldo baru: ' + saldoBaru);
+  closeModal('postMarketJob'); 
+  loadMarketJobs(); 
+  btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
+}
+
+// LOAD JOB YANG DARI MARKET
+async function loadMarketJobs(){ 
+  const { data } = await supabase
+   .from('market_jobs') // <-- GANTI KE SINI
+   .select(`*, pemberi_job:users!market_jobs_user_id_fkey(nama, foto)`)
+   .order('created_at', {ascending:false}); 
+
+  const container = document.getElementById('daftarMarketJob'); 
+  container.innerHTML = ''; 
+  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada job market</p>'; return; } 
+
+  data.forEach(job=>{ 
+    let btn = ''; 
+    if(job.status === 'open' && job.user_id !== userLogin?.id) 
+      btn = `<button class="btn" onclick="ambilMarketJob('${job.id}')">AJUKAN LAMARAN</button>`;
+    if(job.user_id === userLogin?.id && job.status === 'open') 
+      btn = `<button class="btn btn-sukses" onclick="lihatPelamarMarketJob('${job.id}')">LIHAT PELAMAR</button>`;
+    if(job.status === 'dikerjakan' && (job.user_id === userLogin?.id || job.diambil_oleh === userLogin?.id)) 
+      btn = `<button class="btn btn-sukses" onclick="selesaiMarketJob('${job.id}')">✅ SELESAI & KIRIM BUKTI</button>`;
+    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
+      btn = `<button class="btn btn-sukses" onclick="konfirmasiMarketJob('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
+
+    container.innerHTML += `<div class="card">
+      <h3>${job.judul}</h3><p>${job.deskripsi}</p>
+      <p><b>Reward: ${job.harga} Koin</b></p>
+      <p>Status: <b>${job.status}</b></p>
+      <p>Oleh: ${job.pemberi_job?.nama || 'Anonim'}</p>
+      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT WA / VC</a>${btn}
+    </div>` 
+  }) 
 }
 // Nanti di kirimRating() tinggal tambah if: kalau dari market, koin cair ke pekerja
 
