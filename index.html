@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -120,15 +121,15 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   margin: 0;
   line-height: 1.3;
 }
-.market-body .desc{
-  font-size: 13px;
-  color: gray;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* potong jadi 2 baris */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 36px; /* biar rata */
+.market-card{
+  display: flex;
+  flex-direction: column;
+}
+
+.market-body{
+  flex: 1; /* biar body nya dorong footer ke bawah */
+  display: flex;
+  flex-direction: column;
 }
 .market-body .meta{
   font-size: 12px;
