@@ -73,20 +73,32 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 .bintang:hover ~ .bintang {color:#FFD700; transform:scale(1.2)}
 .bintang.active {color:#FFD700}
 .bintang-text {font-weight:bold; font-size:16px; color:var(--accent); height:20px}
-.bintang-text {font-weight:bold; font-size:16px; color:var(--accent); height:20px}
+.tab-market {
+  display:flex; 
+  gap:10px; 
+  margin-bottom:20px; 
+  border-bottom:3px solid var(--border)
+}
+.tab-btn {
+  padding:12px 25px; 
+  background:none; 
+  border:none; 
+  font-size:16px; 
+  font-weight:bold; 
+  cursor:pointer; 
+  color:var(--text); 
+  border-bottom:3px solid transparent;
+  margin-bottom:-3px;
+  transition:0.2s;
+}
+.tab-btn.active {
+  color:var(--accent); 
+  border-bottom:3px solid var(--accent)
+}
+.tab-btn:hover {background:var(--bg)}
+.tab-content {display:none}
+.tab-content.active {display:block}
 
-.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:20px 0}
-.market-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:.2s;height:100%}
-.market-card:hover{transform:translateY(-3px)}
-.market-banner{width:100%;aspect-ratio:1/1;max-height:280px;object-fit:cover;cursor:pointer;background:#f0f0f0}
-.market-body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
-.market-body h3{font-size:15px;margin:0;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.market-body.desc{font-size:13px;color:gray;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.market-body.meta{font-size:12px;font-weight:bold;color:var(--accent)}
-.market-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;margin-top:auto}
-.market-avatar-sm{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
-.btn-chat{background:var(--accent-dark)!important;color:#fff;padding:6px 14px!important;font-size:12px;border-radius:6px;border:none!important}
-.btn-harga{background:var(--accent-dark);color:#fff;text-align:center;padding:10px;border-radius:8px;font-weight:bold;margin-top:5px;font-size:14px}
 </style>
 </head>
 <body>
@@ -145,9 +157,34 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 </div>
 <div id="videosPage" class="container" style="display:none"><h2>📹 VIDEO</h2><button class="btn" onclick="openModal('uploadVideo')">+ TAMBAH VIDEO</button><div id="daftarVideo" class="grid"></div></div>
 <div id="marketPage" class="container" style="display:none">
-  <h2>🛍️ MARKET BITERA</h2>
-  <button class="btn" onclick="openModal('postMarket')">+ PASANG IKLAN VC</button>
-  <div id="daftarMarket" class="grid" style="margin-top:20px"></div>
+  <h2>🛍️ MARKET</h2>
+  
+  <!-- TAB MENU -->
+  <div class="tab-market">
+    <button class="tab-btn active" onclick="switchTabMarket('tabIklan', this)">📢 POSTING IKLAN</button>
+    <button class="tab-btn" onclick="switchTabMarket('tabDikerjakan', this)">⚡ SEDANG DIKERJAKAN</button>
+  </div>
+
+  <!-- TAB 1: POSTING IKLAN MARKET -->
+  <div id="tabIklan" class="tab-content active">
+    <div class="card">
+      <h3>Buat Iklan Jasa</h3>
+      <input class="input" id="judulIklan" placeholder="Judul Jasa: Contoh Jasa Desain Logo">
+      <textarea class="input" id="deskripsiIklan" placeholder="Detail jasa kamu..."></textarea>
+      <input class="input" type="number" id="hargaIklan" placeholder="Harga Koin">
+      <input class="input" id="noWaIklan" placeholder="No WA 628xxx">
+      <button class="btn" onclick="postIklan()">+ POST IKLAN</button>
+    </div>
+    <h3>Daftar Iklan Tersedia</h3>
+    <div id="daftarIklan" class="grid"></div>
+  </div>
+
+  <!-- TAB 2: SEDANG DIKERJAKAN -->
+  <div id="tabDikerjakan" class="tab-content">
+    <h3>Job Market Yang Lagi Kamu Kerjakan</h3>
+    <div id="daftarDikerjakan" class="grid"></div>
+  </div>
+
 </div>
 
 <div id="friendsPage" class="container" style="display:none">
@@ -212,24 +249,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="uploadVideo"><div class="modal-content"><h2>TAMBAH VIDEO</h2><input class="input" id="judulVideo" placeholder="Judul"><input class="input" id="linkVideo" placeholder="Link Youtube Embed"><button class="btn" onclick="simpanVideo()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('uploadVideo')">TUTUP</button></div></div>
 
 
-
-<div class="modal" id="uploadMarketModal">
-  <div class="modal-content">
-    <h2>🛍️ UPLOAD IKLAN MARKET</h2>
-    <input class="input" id="judulMarket" placeholder="Nama Produk">
-    <textarea class="input" id="descMarket" placeholder="Deskripsi Produk"></textarea>
-    <input class="input" type="number" id="hargaMarket" placeholder="Harga Koin">
-
-    <input type="file" id="marketBannerInput" accept="image/*" style="display:none">
-    <img id="previewBanner" src="" onclick="document.getElementById('marketBannerInput').click()" style="width:100%;max-height:250px;object-fit:contain;border-radius:10px;margin:10px 0;display:none;aspect-ratio:1/1;background:#f0f0f0;cursor:pointer">
-    <p style="text-align:center;font-size:12px;color:gray;margin-top:-5px">Klik gambar untuk upload banner</p>
-
-    <button class="btn" onclick="uploadMarket()">UPLOAD IKLAN</button>
-    <button class="btn btn-batal" onclick="closeModal('uploadMarketModal')">TUTUP</button>
-  </div>
-</div>
-
-
 <div class="modal" id="selesaiModal">
   <div class="modal-content">
     <h2>✅ SELESAIKAN JOB</h2>
@@ -249,63 +268,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
         <div id="bintangWrap"></div>
       </div>
     </div>
-
-
-
-    <div class="modal" id="postMarket">
-  <div class="modal-content">
-    <h2>+ PASANG IKLAN VC</h2>
-    <input class="input" id="marketJudul" placeholder="Judul: VC Belajar Bahasa Thailand">
-    <textarea class="input" id="marketDeskripsi" placeholder="Deskripsi: 30 menit belajar bahasa thailand dasar"></textarea>
-    <input class="input" type="number" id="marketHarga" placeholder="Reward Koin: contoh 5000">
-    <input class="input" id="marketWa" placeholder="No WA 628xxx">
-    <input type="file" id="inputBanner" accept="image/*" class="input" onchange="previewBanner(event)">
-    <img id="previewBanner" style="width:100%; max-height:400px; object-fit:cover; border-radius:10px; margin:10px 0; display:none; aspect-ratio:9/16">
-    <button class="btn" onclick="buatIklanMarket()">POST IKLAN</button>
-    <button class="btn btn-batal" onclick="closeModal('postMarket')">TUTUP</button>
-  </div>
-</div>
-
-<div class="modal" id="pelamarModal">
-  <div class="modal-content" style="max-width:700px">
-    <h2>👥 DAFTAR PELAMAR</h2>
-    <div id="isiPelamar"></div>
-    <button class="btn btn-batal" onclick="closeModal('pelamarModal')">TUTUP</button>
-  </div>
-</div>
-
-<div class="modal" id="buktiMarketModal">
-  <div class="modal-content">
-    <h2>✅ SELESAI VC & KIRIM BUKTI</h2>
-    <p>Upload screenshot/bukti VC sudah selesai</p>
-    <input type="file" id="inputBuktiMarket" accept="image/*" class="input" onchange="previewBuktiMarket(event)">
-    <img id="previewBuktiMarket" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin:10px 0; display:none; aspect-ratio:9/16">
-    <button class="btn btn-sukses" onclick="kirimBuktiMarket()">KIRIM BUKTI</button>
-    <button class="btn btn-batal" onclick="closeModal('buktiMarketModal')">TUTUP</button>
-  </div>
-</div>
-
-<div class="modal" id="ratingMarketModal">
-  <div class="modal-content">
-    <h2>⭐ KASIH RATING</h2>
-    <p id="ratingMarketJudul"></p>
-    <div class="rating-wrap">
-      <div class="bintang-container" id="bintangMarketContainer">
-        <!-- JANGAN PAKE .MAP DI HTML. TULIS MANUAL -->
-        <span class="bintang" data-star="5">★</span>
-        <span class="bintang" data-star="4">★</span>
-        <span class="bintang" data-star="3">★</span>
-        <span class="bintang" data-star="2">★</span>
-        <span class="bintang" data-star="1">★</span>
-      </div>
-      <div class="bintang-text" id="bintangMarketText">Klik bintang untuk memberi rating</div>
-      <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="prosesCairMarket(transAktifMarket, null)">KIRIM RATING & SELESAI</button>
-    </div>
-    <button class="btn btn-batal" style="width:100%; margin-top:10px" onclick="closeModal('ratingMarketModal')">TUTUP</button>
-  </div>
-</div>
-
-
 
 <footer>bitera.vercel.app 2026</footer>
 
@@ -899,170 +861,83 @@ async function loadVideos(){
     </div>`
   })
 }
+async function loadMarket(){ 
+  switchTabMarket('tabIklan', document.querySelector('.tab-btn')); // auto buka tab 1
+}
+// ===== SISTEM TAB MARKET =====
+window.switchTabMarket = function(tabId, el){
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  
+  el.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
 
-let bannerFile = null;
-let transAktifMarket = '';
-let skorRatingMarket = 0;
-
-window.previewBanner = function(e){
-  bannerFile = e.target.files[0];
-  if(!bannerFile) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => { // GANTI e JADI ev BIAR GA KETIMPA
-    document.getElementById('previewBanner').src = ev.target.result;
-    document.getElementById('previewBanner').style.display = 'block';
-  }
-  reader.readAsDataURL(bannerFile); // INI TADI SALAH: file -> bannerFile
+  if(tabId === 'tabIklan') loadIklan();
+  if(tabId === 'tabDikerjakan') loadDikerjakan();
 }
 
-async function uploadBanner(file, adId) {
-  const compressedFile = await compressImage(file, 1000);
-  const filePath = `${adId}/${Date.now()}.jpg`;
-  await supabase.storage.from('market-banner').upload(filePath, compressedFile, { upsert: true });
-  const { data } = supabase.storage.from('market-banner').getPublicUrl(filePath); // GA USAH AWAIT
-  return data.publicUrl;
-}
-
-let bannerFileMarket = null; // GANTI NAMA BIAR GA BENTROK SAMA YG LAMA
-
-window.previewBannerMarket = function(e){
-  bannerFileMarket = e.target.files[0];
-  if(!bannerFileMarket) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    document.getElementById('previewBannerMarket').src = ev.target.result;
-    document.getElementById('previewBannerMarket').style.display = 'block';
-  }
-  reader.readAsDataURL(bannerFileMarket);
-}
-
-async function uploadBannerMarket(file, adId) {
-  const compressedFile = await compressImage(file, 1080);
-  const filePath = `market_ads/${adId}/${Date.now()}.jpg`;
-  await supabase.storage.from('market').upload(filePath, compressedFile, { upsert: true }); // pake bucket 'market'
-  const { data } = supabase.storage.from('market').getPublicUrl(filePath);
-  return data.publicUrl;
-}
-
-window.buatIklanMarket = async function(){
-  if(!userLogin) return alert("Login dulu");
-  const judul = document.getElementById('marketJudul').value;
-  const deskripsi = document.getElementById('marketDeskripsi').value;
-  const harga = parseInt(document.getElementById('marketHarga').value);
-  const wa = document.getElementById('marketWa').value;
-  if(!judul ||!harga ||!bannerFileMarket) return alert("Lengkapi semua + upload foto");
-
-  const { data: ad, error } = await supabase.from('market_ads').insert({
-    user_id: userLogin.id, judul, deskripsi, harga, no_wa: wa, status: 'open'
-  }).select().single();
-  if(error) return alert(error.message);
-
-  const urlBanner = await uploadBannerMarket(bannerFileMarket, ad.id);
-  await supabase.from('market_ads').update({banner_url: urlBanner}).eq('id', ad.id);
-
-  bannerFileMarket = null;
-  document.getElementById('previewBannerMarket').style.display = 'none';
-  document.getElementById('marketJudul').value = '';
-  document.getElementById('marketDeskripsi').value = '';
-  document.getElementById('marketHarga').value = '';
-  document.getElementById('marketWa').value = '';
-
-  alert('Iklan diposting! Gratis');
-  closeModal('postMarket');
-  loadMarket();
-}
-
-async function loadMarket(){
-  const { data: ads } = await supabase.from('market_ads')
-   .select('*, users:users!user_id(id,nama,foto)').order('created_at',{ascending:false});
-
-  let myTrans = [];
-  if(userLogin){
-    const { data } = await supabase.from('market_transactions')
-     .select('*, market_ads:market_ads!market_ad_id(*)')
-     .or(`pelamar_id.eq.${userLogin.id}, market_ads.user_id.eq.${userLogin.id}`);
-    myTrans = data || [];
-  }
-
-  const container = document.getElementById('daftarMarket');
-  container.innerHTML = '';
-  if(!ads || ads.length === 0){ container.innerHTML = '<p>Belum ada iklan</p>'; return; }
-
-  ads.forEach(ad=>{
-    const trans = myTrans.find(t => t.market_ad_id === ad.id);
+async function loadIklan(){
+  if(!userLogin) return;
+  const { data } = await supabase.from('market_services').select('*, users:users!user_id(nama,foto)').eq('status','tersedia').order('created_at', {ascending:false});
+  const container = document.getElementById('daftarIklan'); container.innerHTML = '';
+  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada iklan</p>';
+  
+  data.forEach(i=>{
     let btn = '';
-
-    if(ad.status === 'open' && userLogin && ad.user_id!== userLogin.id &&!trans)
-      btn = `<button class="btn" onclick="applyMarket('${ad.id}')">AJUKAN LAMARAN</button>`;
-
-    if(ad.status === 'open' && userLogin && ad.user_id === userLogin.id)
-      btn = `<button class="btn btn-sukses" onclick="lihatPelamarMarket('${ad.id}')">LIHAT PELAMAR</button> <button class="btn btn-batal" onclick="hapusIklan('${ad.id}')">HAPUS</button>`;
-
-    if(trans?.status === 'dikerjakan' && ad.user_id === userLogin.id)
-      btn = `<button class="btn btn-sukses" onclick="bukaKirimBukti('${trans.id}')">✅ SELESAI VC & KIRIM BUKTI</button>`;
-
-    if(trans?.status === 'menunggu_konfirmasi' && trans.pelamar_id === userLogin.id)
-      btn = `<button class="btn btn-sukses" onclick="bukaRatingMarket('${trans.id}','${trans.pelamar_id}','${ad.judul}')">CEK BUKTI & RATING</button>`;
-
-    container.innerHTML += `<div class="market-card">
-      <img src="${ad.banner_url}" class="market-banner" onclick="window.open('${ad.banner_url}')">
-      <div class="market-body">
-        <h3>${ad.judul}</h3><p class="desc">${ad.deskripsi}</p>
-        <div class="btn-harga">${ad.harga.toLocaleString()} Koin</div>
-        <p>Status: <b>${ad.status}</b></p>
-        ${trans?.status === 'dikerjakan'? `<p>Dikerjakan oleh: ${trans.pelamar_id}</p>` : ''}
-        <div class="market-footer">
-          <img src="${ad.users.foto || 'https://ui-avatars.com/api/?name='+ad.users.nama}" class="market-avatar-sm">
-          <span>${ad.users.nama}</span>
-          <a href="https://wa.me/${ad.no_wa}" target="_blank" class="btn btn-chat">CHAT</a>
-        </div>
-        ${btn}
-      </div>
+    if(i.user_id !== userLogin.id) btn = `<button class="btn btn-sukses" onclick="ambilIklan('${i.id}')">AMBIL JOB</button>`;
+    container.innerHTML += `<div class="card">
+      <h3>${i.judul}</h3><p>${i.deskripsi}</p>
+      <p><b>Harga: ${i.harga} Koin</b></p>
+      <p>Oleh: ${i.users.nama}</p>
+      <a href="https://wa.me/${i.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT</a>${btn}
     </div>`
   })
 }
-window.applyMarket = async function(adId){
-  const { data: ad } = await supabase.from('market_ads').select('harga').eq('id', adId).single();
-  if(saldoSekarang < ad.harga) return alert("Saldo tidak cukup. Butuh: "+ad.harga+" Koin");
 
-  const saldoBaru = saldoSekarang - ad.harga;
-  await supabase.from('users').update({saldo: saldoBaru}).eq('id', userLogin.id);
-  saldoSekarang = saldoBaru; updateSaldoUI();
+async function loadDikerjakan(){
+  if(!userLogin) return;
+  const { data } = await supabase.from('market_orders').select('*, market_services:market_services!service_id(*), pemberi:users!pemberi_id(nama)').eq('pekerja_id', userLogin.id).eq('status','dikerjakan');
+  const container = document.getElementById('daftarDikerjakan'); container.innerHTML = '';
+  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada job yg dikerjakan</p>';
+  
+  data.forEach(o=>{
+    container.innerHTML += `<div class="card">
+      <h3>${o.market_services.judul}</h3><p>${o.market_services.deskripsi}</p>
+      <p><b>Harga: ${o.market_services.harga} Koin</b></p>
+      <p>Pemberi: ${o.pemberi.nama}</p>
+      <button class="btn btn-sukses" onclick="selesaiMarket('${o.id}')">✅ SELESAI & KIRIM BUKTI</button>
+    </div>`
+  })
+}
 
-  const { error } = await supabase.from('market_transactions').insert({
-    market_ad_id: adId, pelamar_id: userLogin.id, status: 'menunggu', harga_dikunci: ad.harga
+window.postIklan = async function(){
+  if(!userLogin) return alert("Login dulu"); 
+  const judul = document.getElementById('judulIklan').value; 
+  const deskripsi = document.getElementById('deskripsiIklan').value; 
+  const harga = parseInt(document.getElementById('hargaIklan').value); 
+  const noWa = document.getElementById('noWaIklan').value; 
+  if(!judul ||!harga) return alert("Isi semua");
+  
+  const { error } = await supabase.from('market_services').insert({
+    user_id: userLogin.id, judul, deskripsi, harga, no_wa: noWa, status: 'tersedia'
   });
-  if(error) {
-    await supabase.from('users').update({saldo: saldoSekarang + ad.harga}).eq('id', userLogin.id);
-    saldoSekarang += ad.harga; updateSaldoUI();
-    return alert("Kamu sudah melamar iklan ini");
-  }
-  alert("Lamaran terkirim. Saldo "+ad.harga+" Koin dikunci");
-  loadMarket();
+  if(error) return alert(error.message);
+  alert('Iklan diposting!'); 
+  loadIklan();
 }
 
-window.lihatPelamarMarket = async function(adId){
-  const { data } = await supabase.from('market_transactions')
-   .select('*, users:users!pelamar_id(*)').eq('market_ad_id', adId).eq('status','menunggu');
-  let html = `<button class="btn btn-batal" onclick="loadMarket()">⬅️ KEMBALI</button><h3>Pilih Pembeli</h3>`;
-  data.forEach(p=>{
-    html += `<div class="card">
-      <img src="${p.users.foto}" style="width:60px;height:60px;border-radius:50%">
-      <h3>${p.users.nama}</h3><p>⭐ ${p.users.jumlah_rating > 0? (p.users.total_rating/p.users.jumlah_rating).toFixed(1) : '0.0'}</p>
-      <button class="btn btn-sukses" onclick="pilihPelamar('${p.id}','${p.pelamar_id}')">PILIH DIA & MULAI VC</button>
-    </div>`
-  })
-  document.getElementById('daftarMarket').innerHTML = html;
+window.ambilIklan = async function(serviceId){
+  const { error } = await supabase.from('market_orders').insert({
+    service_id: serviceId, pemberi_id: userLogin.id, pekerja_id: null, status: 'menunggu'
+  });
+  if(error) return alert('Gagal ambil');
+  alert("Berhasil mengajukan. Tunggu konfirmasi");
+  loadIklan();
 }
 
-window.pilihPelamar = async function(transId, pelamarId){
-  await supabase.from('market_transactions').update({ status: 'dikerjakan', pelamar_id: pelamarId }).eq('id', transId);
-  await supabase.from('market_ads').update({ status: 'dikerjakan' }).eq('id', transId); // salah. harus select dulu
-  alert("Pelamar dipilih. Dana dikunci. Silahkan VC");
-  loadMarket();
+window.selesaiMarket = async function(orderId){
+  alert("Fitur upload bukti market menyusul");
 }
-
-
 
 async function loadMyProfile(){ 
   if(!userLogin) return; 
