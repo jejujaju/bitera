@@ -1144,9 +1144,32 @@ window.lihatPelamarMarket = async function(adId){
 }
 
 window.pilihPelamar = async function(transId, pelamarId){
-  await supabase.from('market_transactions').update({status:'dikerjakan'}).eq('id', transId);
+  const { error } = await supabase.from('market_transactions')
+    .update({
+      status: 'dikerjakan',
+      chosen_provider_id: pelamarId // <-- TAMBAH INI BIAR TAU SIAPA YG KERJA
+    })
+    .eq('id', transId);
+  
+  if(error) return alert(error.message);
   alert("Pelamar dipilih. Sekarang tombol 'SELESAI VC & KIRIM BUKTI' muncul");
   closeModal('pelamarModal');
+  loadMarket();
+}
+
+
+window.selesaiVC = async function(transId){
+  const file = document.getElementById('inputBukti').files[0]; // bikin input file dulu
+  const fileName = `${currentUser.id}/${transId}.jpg`;
+  
+  const { data } = await supabase.storage.from('bukti-market').upload(fileName, file);
+  const { publicUrl } = supabase.storage.from('bukti-market').getPublicUrl(fileName).data;
+  
+  await supabase.from('market_transactions')
+    .update({ status: 'waiting_confirmation', bukti_url: publicUrl })
+    .eq('id', transId);
+    
+  alert('Bukti terkirim. Menunggu penyedia konfirmasi');
   loadMarket();
 }
 
@@ -1189,18 +1212,35 @@ window.kirimBuktiMarket = async function(){
   closeModal('buktiMarketModal');
   loadMarket();
 }
-
 // Tombol muncul di card market kalau status = dikerjakan
 function tombolMarket(ad, trans){
   if(!userLogin) return '';
-  if(trans?.status === 'dikerjakan' && (ad.user_id === userLogin.id || trans.pelamar_id === userLogin.id)){
-    return `<button class="btn btn-sukses" onclick="bukaKirimBukti('${trans.id}')">✅ SELESAI VC & KIRIM BUKTI</button>`;
-  }
-  if(trans?.status === 'menunggu_konfirmasi' && ad.user_id === userLogin.id){
-    return `<button class="btn btn-sukses" onclick="bukaRatingMarket('${trans.id}','${trans.pelamar_id}','${ad.judul}')">CEK BUKTI & RATING</button>`;
-  }
-  return '';
 
+  // 1. STATUS DIKERJAKAN = PEMBELI KIRIM BUKTI
+  if(trans?.status === 'dikerjakan'){
+    // Kalau yg login adalah Pembeli/Pemilik Iklan
+    if(ad.user_id === userLogin.id){
+      return `<button class="btn btn-sukses" onclick="bukaKirimBukti('${trans.id}')">✅ SELESAI VC & KIRIM BUKTI</button>`;
+    }
+    // Kalau yg login adalah Penyedia yg dipilih
+    if(trans.pelamar_id === userLogin.id){
+      return `<p style="color:orange">⏳ Menunggu pembeli kirim bukti</p>`;
+    }
+  }
+
+  // 2. STATUS MENUNGGU_KONFIRMASI = PENYEDIA KLIK KONFIRMASI + RATING
+  if(trans?.status === 'menunggu_konfirmasi'){
+    // Kalau yg login adalah Penyedia yg dipilih
+    if(trans.pelamar_id === userLogin.id){
+      return `<button class="btn btn-sukses" onclick="bukaRatingMarket('${trans.id}','${trans.pelamar_id}','${ad.judul}')">CEK BUKTI & RATING</button>`;
+    }
+    // Kalau yg login adalah Pembeli
+    if(ad.user_id === userLogin.id){
+      return `<p style="color:blue">⏳ Menunggu penyedia konfirmasi</p>`;
+    }
+  }
+
+  return '';
 }
 
 window.bukaKirimBukti = function(transId){
