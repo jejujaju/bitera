@@ -99,6 +99,10 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 .tab-content {display:none}
 .tab-content.active {display:block}
 
+
+.preview-iklan{width:100%; max-height:250px; object-fit:cover; border-radius:10px; margin:10px 0; border:2px solid var(--border); display:none}
+.card-iklan-img{width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px}
+
 </style>
 </head>
 <body>
@@ -167,17 +171,23 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
   <!-- TAB 1: POSTING IKLAN MARKET -->
   <div id="tabIklan" class="tab-content active">
-    <div class="card">
-      <h3>Buat Iklan Jasa</h3>
-      <input class="input" id="judulIklan" placeholder="Judul Jasa: Contoh Jasa Desain Logo">
-      <textarea class="input" id="deskripsiIklan" placeholder="Detail jasa kamu..."></textarea>
-      <input class="input" type="number" id="hargaIklan" placeholder="Harga Koin">
-      <input class="input" id="noWaIklan" placeholder="No WA 628xxx">
-      <button class="btn" onclick="postIklan()">+ POST IKLAN</button>
-    </div>
-    <h3>Daftar Iklan Tersedia</h3>
-    <div id="daftarIklan" class="grid"></div>
+  <div class="card">
+    <h3>Buat Iklan Jasa</h3>
+    <input class="input" id="judulIklan" placeholder="Judul Jasa: Contoh Jasa Desain Logo">
+    <textarea class="input" id="deskripsiIklan" placeholder="Detail jasa kamu..."></textarea>
+    <input class="input" type="number" id="hargaIklan" placeholder="Harga Koin">
+    <input class="input" id="noWaIklan" placeholder="No WA 628xxx">
+
+    <!-- TAMBAHAN UPLOAD FOTO -->
+    <label>Foto Iklan:</label>
+    <input type="file" id="inputFotoIklan" accept="image/*" class="input" onchange="previewFotoIklan(event)">
+    <img id="previewFotoIklan" class="preview-iklan">
+
+    <button class="btn" onclick="postIklan()">+ POST IKLAN</button>
   </div>
+  <h3>Daftar Iklan Tersedia</h3>
+  <div id="daftarIklan" class="grid"></div>
+</div>
 
   <!-- TAB 2: SEDANG DIKERJAKAN -->
   <div id="tabDikerjakan" class="tab-content">
@@ -881,11 +891,15 @@ async function loadIklan(){
   const { data } = await supabase.from('market_services').select('*, users:users!user_id(nama,foto)').eq('status','tersedia').order('created_at', {ascending:false});
   const container = document.getElementById('daftarIklan'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada iklan</p>';
-  
+
   data.forEach(i=>{
     let btn = '';
-    if(i.user_id !== userLogin.id) btn = `<button class="btn btn-sukses" onclick="ambilIklan('${i.id}')">AMBIL JOB</button>`;
+    if(i.user_id!== userLogin.id) btn = `<button class="btn btn-sukses" onclick="ambilIklan('${i.id}')">AMBIL JOB</button>`;
+
+    const img = i.foto_url? `<img src="${i.foto_url}" class="card-iklan-img">` : ''; // KALAU ADA FOTO TAMPILIN
+
     container.innerHTML += `<div class="card">
+      ${img}
       <h3>${i.judul}</h3><p>${i.deskripsi}</p>
       <p><b>Harga: ${i.harga} Koin</b></p>
       <p>Oleh: ${i.users.nama}</p>
@@ -926,6 +940,63 @@ window.postIklan = async function(){
   loadIklan();
 }
 
+win// PREVIEW FOTO IKLAN
+window.previewFotoIklan = function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('previewFotoIklan').src = e.target.result;
+    document.getElementById('previewFotoIklan').style.display = 'block';
+  }
+  reader.readAsDataURL(file);
+}
+
+// GANTI FULL FUNGSI postIklan JADI INI
+window.postIklan = async function(){
+  if(!userLogin) return alert("Login dulu");
+  const judul = document.getElementById('judulIklan').value;
+  const deskripsi = document.getElementById('deskripsiIklan').value;
+  const harga = parseInt(document.getElementById('hargaIklan').value);
+  const noWa = document.getElementById('noWaIklan').value;
+  const file = document.getElementById('inputFotoIklan').files[0];
+  if(!judul ||!harga) return alert("Judul dan Harga wajib");
+
+  let fotoUrl = null;
+  // KALAU ADA FOTO DIUPLOAD
+  if(file){
+    alert('Lagi compress foto...');
+    const compressedFile = await compressImage(file, 1000); // pake fungsi compress kamu yg udah ada
+
+    const filePath = `iklan/${userLogin.id}-${Date.now()}.jpg`;
+    const { error: upErr } = await supabase.storage.from('foto-iklan').upload(filePath, compressedFile, { upsert: true });
+    if(upErr) return alert('Gagal upload foto: ' + upErr.message);
+
+    const { data } = await supabase.storage.from('foto-iklan').getPublicUrl(filePath);
+    fotoUrl = data.publicUrl;
+  }
+
+  const { error } = await supabase.from('market_services').insert({
+    user_id: userLogin.id,
+    judul,
+    deskripsi,
+    harga,
+    no_wa: noWa,
+    foto_url: fotoUrl, // SIMPAN URL FOTO
+    status: 'tersedia'
+  });
+  if(error) return alert(error.message);
+
+  alert('Iklan diposting!');
+  // RESET FORM
+  document.getElementById('judulIklan').value = '';
+  document.getElementById('deskripsiIklan').value = '';
+  document.getElementById('hargaIklan').value = '';
+  document.getElementById('noWaIklan').value = '';
+  document.getElementById('inputFotoIklan').value = '';
+  document.getElementById('previewFotoIklan').style.display = 'none';
+  loadIklan();
+}
 window.ambilIklan = async function(serviceId){
   const { error } = await supabase.from('market_orders').insert({
     service_id: serviceId, pemberi_id: userLogin.id, pekerja_id: null, status: 'menunggu'
