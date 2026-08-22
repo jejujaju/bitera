@@ -430,7 +430,7 @@ async function loadPenyedia(){
 async function loadJobs(){ 
   const { data, error } = await supabase
    .from('jobs')
-   .select(`*, pemberi_job:users!jobs_user_id_fkey(nama, foto), pekerja:users!jobs_diambil_oleh_fkey(nama, foto)`)
+   .select(`*, pemberi_job:users!jobs_user_id_fkey(id, nama, foto), pekerja:users!jobs_diambil_oleh_fkey(id, nama, foto)`)
    .order('created_at', {ascending:false}); 
 
   if(error){ console.error(error); return; }
@@ -450,16 +450,39 @@ async function loadJobs(){
       btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
 
     container.innerHTML += `<div class="card">
-      <h3>${job.judul}</h3><p>${job.deskripsi}</p>
+      <h3>${job.judul}</h3>
+      <p>${job.deskripsi}</p>
       <p><b>Reward: ${job.harga} Koin</b></p>
       <p>Status: <b>${job.status}</b></p>
-      <p>Oleh: ${job.pemberi_job?.nama || 'Anonim'}</p>
-      ${job.pekerja? `<p>Dikerjakan: ${job.pekerja.nama}</p>` : ''}
-      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT WA / VC</a>${btn}
+      
+      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
+        <img src="${job.pemberi_job?.foto || 'https://ui-avatars.com/api/?name='+job.pemberi_job?.nama}" 
+             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
+             onclick="lihatProfilOrang('${job.pemberi_job?.id}')">
+        <div>
+          <p style="margin:0; font-size:12px; color:gray">Oleh:</p>
+          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pemberi_job?.id}')">${job.pemberi_job?.nama || 'Anonim'}</b>
+        </div>
+        ${userLogin?.id !== job.user_id ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pemberi_job?.id}')">💬 Pesan</button>` : ''}
+      </div>
+
+      ${job.pekerja? `
+      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
+        <img src="${job.pekerja?.foto || 'https://ui-avatars.com/api/?name='+job.pekerja?.nama}" 
+             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
+             onclick="lihatProfilOrang('${job.pekerja?.id}')">
+        <div>
+          <p style="margin:0; font-size:12px; color:gray">Dikerjakan:</p>
+          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pekerja?.id}')">${job.pekerja?.nama}</b>
+        </div>
+        ${userLogin?.id !== job.diambil_oleh ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pekerja?.id}')">💬 Pesan</button>` : ''}
+      </div>` : ''}
+      
+      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366; width:100%; margin-bottom:8px">📱 CHAT WA / VC</a>
+      ${btn}
     </div>` 
   }) 
 }
-
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
     job_id: jobId, pelamar_id: userLogin.id, status: 'menunggu'
@@ -671,15 +694,15 @@ window.simpanVideo = async function(){
 }
 
 async function loadVideos(){
-  const { data, error } = await supabase.from('videos').select('*, users:users!user_id(nama, foto)').order('created_at', {ascending:false});
+  const { data, error } = await supabase.from('videos').select('*, users:users!user_id(id, nama, foto)').order('created_at', {ascending:false});
   if(error){ console.log(error); return; }
   const container = document.getElementById('daftarVideo'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada video</p>';
   data.forEach(v=>{
     container.innerHTML += `<div class="card">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer" onclick="lihatProfilOrang('${v.users.id}')">
         <img src="${v.users.foto||'https://ui-avatars.com/api/?name='+v.users.nama}" style="width:32px;height:32px;border-radius:50%">
-        <b style="font-size:14px">${v.users.nama}</b>
+        <b style="font-size:14px; color:var(--accent)">${v.users.nama}</b>
       </div>
       <h3>${v.judul}</h3>
       <iframe src="${v.link}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%; height:180px; border-radius:10px"></iframe>
