@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GET BITERA - Dari Nganggur Jadi Ada Kerjaan</title>
+<title>아인운 AINUN - Dari Nganggur Jadi Ada Kerjaan</title>
 <style>
 :root{--bg:#E8F0F4;--card:#FFF;--text:#2C3E50;--accent:#4A7C8A;--accent-dark:#3E6A77;--border:#D0E0E7;--shadow:0 4px 15px rgba(74,124,138,0.12);--chat-me:#DCF8C6}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif}
@@ -37,7 +37,6 @@ header{background:var(--card)!important;padding:15px 0;border-bottom:4px solid v
 .home-dashboard {flex: 1;min-width: 320px;background: var(--card);padding: 30px;border-radius: 15px;border: 3px solid var(--accent);box-shadow: var(--shadow);text-align: center;}
 .home-video iframe {width: 100%;height: 400px;border-radius: 15px;border: 3px solid var(--accent);}
 footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;border-top:3px solid var(--accent);font-weight:bold;color:var(--accent)}
-/* CSS BARU ALA FB */
 .profil-cover{width:100%;height:250px;object-fit:cover;border-radius:10px 10px 0 0}
 .profil-foto{width:150px;height:150px;border-radius:50%;border:5px solid var(--card);object-fit:cover;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
 .profil-header{background:var(--card); border-radius:15px; box-shadow:var(--shadow); margin-bottom:20px; position:relative}
@@ -70,39 +69,9 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   user-select:none;
 }
 .bintang:hover,
-.bintang:hover ~ .bintang {color:#FFD700; transform:scale(1.2)}
+.bintang:hover ~.bintang {color:#FFD700; transform:scale(1.2)}
 .bintang.active {color:#FFD700}
 .bintang-text {font-weight:bold; font-size:16px; color:var(--accent); height:20px}
-.tab-market {
-  display:flex; 
-  gap:10px; 
-  margin-bottom:20px; 
-  border-bottom:3px solid var(--border)
-}
-.tab-btn {
-  padding:12px 25px; 
-  background:none; 
-  border:none; 
-  font-size:16px; 
-  font-weight:bold; 
-  cursor:pointer; 
-  color:var(--text); 
-  border-bottom:3px solid transparent;
-  margin-bottom:-3px;
-  transition:0.2s;
-}
-.tab-btn.active {
-  color:var(--accent); 
-  border-bottom:3px solid var(--accent)
-}
-.tab-btn:hover {background:var(--bg)}
-.tab-content {display:none}
-.tab-content.active {display:block}
-
-
-.preview-iklan{width:100%; max-height:250px; object-fit:cover; border-radius:10px; margin:10px 0; border:2px solid var(--border); display:none}
-.card-iklan-img{width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px}
-
 </style>
 </head>
 <body>
@@ -110,17 +79,16 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <header>
   <div class="nav">
-    <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>BITERA</span></div></div>
+    <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
       <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
       <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼 JOBS</button>
       <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻 PENYEDIA</button>
       <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹 VIDEOS</button>
-      <button class="btn-sm btn-menu" onclick="showPage('marketPage',this)">🛍️ MARKET</button>
       <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥 TEMAN <span id="badgeTeman" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬 CHAT <span id="badgeChat" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤 PROFIL</button>
-<button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
+      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
@@ -131,11 +99,11 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <div id="homePage" class="container">
   <section class="hero">
-    <h2>Dari Nganggur Jadi Ada Kerjaan</h2>
-    <p>Apapun skill kamu. Jadikan jadi duit di BITERA.</p>
+    <h2>AINUN JOB</h2>
+    <p>Dari Nganggur Jadi Ada Kerjaan</p>
     <div class="home-wrapper">
       <div class="home-video">
-        <p style="font-weight:bold;color:var(--accent)">VIDEO BITERA</p>
+        <p style="font-weight:bold;color:var(--accent)">VIDEO AINUN</p>
         <iframe src="https://www.youtube.com/embed/P6xpN812xck" frameborder="0" allowfullscreen></iframe>
       </div>
       <div class="home-dashboard">
@@ -160,42 +128,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div id="daftarPenyedia" class="grid"></div>
 </div>
 <div id="videosPage" class="container" style="display:none"><h2>📹 VIDEO</h2><button class="btn" onclick="openModal('uploadVideo')">+ TAMBAH VIDEO</button><div id="daftarVideo" class="grid"></div></div>
-<div id="marketPage" class="container" style="display:none">
-  <h2>🛍️ MARKET</h2>
-  
-  <!-- TAB MENU -->
-  <div class="tab-market">
-    <button class="tab-btn active" onclick="switchTabMarket('tabIklan', this)">📢 POSTING IKLAN</button>
-    <button class="tab-btn" onclick="switchTabMarket('tabDikerjakan', this)">⚡ SEDANG DIKERJAKAN</button>
-  </div>
-
-  <!-- TAB 1: POSTING IKLAN MARKET -->
-  <div id="tabIklan" class="tab-content active">
-  <div class="card">
-    <h3>Buat Iklan Jasa</h3>
-    <input class="input" id="judulIklan" placeholder="Judul Jasa: Contoh Jasa Desain Logo">
-    <textarea class="input" id="deskripsiIklan" placeholder="Detail jasa kamu..."></textarea>
-    <input class="input" type="number" id="hargaIklan" placeholder="Harga Koin">
-    <input class="input" id="noWaIklan" placeholder="No WA 628xxx">
-
-    <!-- TAMBAHAN UPLOAD FOTO -->
-    <label>Foto Iklan:</label>
-    <input type="file" id="inputFotoIklan" accept="image/*" class="input" onchange="previewFotoIklan(event)">
-    <img id="previewFotoIklan" class="preview-iklan">
-
-    <button class="btn" onclick="postIklan()">+ POST IKLAN</button>
-  </div>
-  <h3>Daftar Iklan Tersedia</h3>
-  <div id="daftarIklan" class="grid"></div>
-</div>
-
-  <!-- TAB 2: SEDANG DIKERJAKAN -->
-  <div id="tabDikerjakan" class="tab-content">
-    <h3>Job Market Yang Lagi Kamu Kerjakan</h3>
-    <div id="daftarDikerjakan" class="grid"></div>
-  </div>
-
-</div>
 
 <div id="friendsPage" class="container" style="display:none">
   <h2>👥 TEMAN & PERMINTAAN</h2>
@@ -255,9 +187,8 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="topup"><div class="modal-content"><h2>TOP UP KOIN VIA DANA</h2><p>Admin 16%</p><button class="btn" onclick="pilihNominal(10000)">10.000 Koin = Rp 11.600</button><button class="btn" onclick="pilihNominal(50000)">50.000 Koin = Rp 58.000</button><button class="btn" onclick="topupKoin()">BAYAR VIA DANA</button><button class="btn btn-batal" onclick="closeModal('topup')">TUTUP</button></div></div>
 <div class="modal" id="post"><div class="modal-content"><h2>POST JOB</h2><input class="input" id="judulPost" placeholder="Judul Job"><input class="input" id="deskripsiPost" placeholder="Detail"><input class="input" type="number" id="hadiahPost" placeholder="Reward Koin"><input class="input" id="noWaPost" placeholder="No WA 628xxx"><button class="btn" onclick="buatPost()">POST & KUNCI DANA</button><button class="btn btn-batal" onclick="closeModal('post')">TUTUP</button></div></div>
 <div class="modal" id="editProfile"><div class="modal-content"><h2>EDIT PROFIL</h2><input class="input" id="editNama" placeholder="Nama"><input class="input" id="editSkill" placeholder="Skill"><input class="input" id="editBio" placeholder="Bio"><input class="input" id="editNoWa" placeholder="No WA 628xxx"><input class="input" type="date" id="editTgl" placeholder="Tanggal Lahir"><input class="input" id="editSekolah" placeholder="Sekolah/Kampus"><input class="input" id="editYoutube" placeholder="Link Youtube"><button class="btn" style="width:100%" onclick="saveProfile()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('editProfile')">TUTUP</button></div></div>
-<div class="modal" id="cs"><div class="modal-content"><h2>💬 CUSTOMER SERVICE</h2><p>Butuh bantuan? Chat admin Bitera</p><a href="https://wa.me/62895623177610" target="_blank" class="btn" style="width:100%;background:#25D366">CHAT WA ADMIN</a><button class="btn btn-batal" onclick="closeModal('cs')">TUTUP</button></div></div>
+<div class="modal" id="cs"><div class="modal-content"><h2>💬 CUSTOMER SERVICE</h2><p>Butuh bantuan? Chat admin Ainun</p><a href="https://wa.me/62895623177610" target="_blank" class="btn" style="width:100%;background:#25D366">CHAT WA ADMIN</a><button class="btn btn-batal" onclick="closeModal('cs')">TUTUP</button></div></div>
 <div class="modal" id="uploadVideo"><div class="modal-content"><h2>TAMBAH VIDEO</h2><input class="input" id="judulVideo" placeholder="Judul"><input class="input" id="linkVideo" placeholder="Link Youtube Embed"><button class="btn" onclick="simpanVideo()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('uploadVideo')">TUTUP</button></div></div>
-
 
 <div class="modal" id="selesaiModal">
   <div class="modal-content">
@@ -270,19 +201,16 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 </div>
 
-
-    <div class="modal" id="ratingModal">
-      <div class="modal-content">
-        <h2>⭐ KASIH RATING</h2>
-        <p id="ratingJobJudul"></p>
-        <div id="bintangWrap"></div>
-      </div>
-    </div>
-
-<footer>bitera.vercel.app 2026</footer>
-
+<div class="modal" id="ratingModal">
+  <div class="modal-content">
+    <h2>⭐ KASIH RATING</h2>
+    <p id="ratingJobJudul"></p>
+    <div id="bintangWrap"></div>
+  </div>
 </div>
 
+<footer>ainunsukamto.vercel.app 2026</footer>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -292,49 +220,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== INIT SUPABASE LANGSUNG =====
 const SUPABASE_URL = "https://xoritozxxglrnvohcjta.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvcml0b3p4eGdscm52b2hjanRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc4MjQsImV4cCI6MjEwMjEyMzgyNH0.9tz5HeKagb4efed-Q67C11nJ7RV4mUuD1t4oe-HNdDA";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-   ;
-// ==================================// FUNGSI BARU: AUTO COMPRESS < 500KB
-async function compressImage(file, maxSize = 800) { // TAMBAH PARAMETER
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function compressImage(file, maxSize = 800) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
-
     reader.onerror = () => reject("Gagal baca file");
     reader.onload = e => img.src = e.target.result;
-
     img.onerror = () => reject("Gagal load gambar");
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-
-      let width = img.width;
-      let height = img.height;
-      const MAX_SIZE = maxSize; // PAKE PARAMETER
-
-      if (width > height) {
-        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-      } else {
-        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          resolve(new File([blob], "compressed.jpg", {type: 'image/jpeg'}));
-        },
-        'image/jpeg',
-        0.7
-      );
+      let width = img.width; let height = img.height; const MAX_SIZE = maxSize;
+      if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } }
+      else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+      canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => { resolve(new File([blob], "compressed.jpg", {type: 'image/jpeg'})); }, 'image/jpeg', 0.7);
     };
     reader.readAsDataURL(file);
   });
 }
-let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null; let jobSelesaiId = ''; let pekerjaRatingId = '';
 
+let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null; let jobSelesaiId = ''; let pekerjaRatingId = '';
 
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
@@ -350,7 +258,7 @@ window.batalTeman = async function(id){ await supabase.from('friendships').delet
 
 async function loadPermintaan(){
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending'); // <-- PAKE VIEW
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(*)').eq('addressee_id', userLogin.id).eq('status','pending');
   jumlahNotifTeman = data? data.length : 0; updateBadgeTeman();
   const container = document.getElementById('daftarPermintaan'); container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Tidak ada permintaan</p>';
@@ -358,187 +266,80 @@ async function loadPermintaan(){
 }
 async function loadDaftarTeman(){
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships')
-    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- PAKE VIEW
-    .eq('status','accepted')
-    .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
-  
-  const container = document.getElementById('daftarTeman'); 
-  container.innerHTML = '';
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+  const container = document.getElementById('daftarTeman'); container.innerHTML = '';
   if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada teman</p>'; return; }
-  
-  data.forEach(f => { 
-    const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester; 
-    container.innerHTML += `<div class="card">
-    <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')">
-    <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3>
-    <button class="btn" onclick="bukaChat('${lawan.id}')">Chat</button> 
-    <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button>
-  </div>` 
-  })
+  data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; container.innerHTML += `<div class="card"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')"><h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3><button class="btn" onclick="bukaChat('${lawan.id}')">Chat</button> <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button></div>` })
 }
 async function uploadKeStorage(file, bucket, path) {
   const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
   if(error) throw error;
-  
-  const { data } = await supabase.storage.from(bucket).getPublicUrl(path); // UDAH PAKE AWAIT
+  const { data } = await supabase.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
 }
 document.getElementById('uploadFoto').onchange = async (e) => {
-  if(!userLogin) return;
-  const file = e.target.files[0];
-  if(!file) return;
-
+  if(!userLogin) return; const file = e.target.files[0]; if(!file) return;
   try {
     alert('Lagi compress foto...')
     const compressedFile = await compressImage(file, 800)
-    const timestamp = Date.now();
-    const path = `${userLogin.id}/avatar.jpg?v=${timestamp}`;
+    const timestamp = Date.now(); const path = `${userLogin.id}/avatar.jpg?v=${timestamp}`;
     const url = await uploadKeStorage(compressedFile, 'avatars', path);
     await supabase.from('users').update({foto: url}).eq('id', userLogin.id);
     document.getElementById('myFoto').src = url + '&t=' + timestamp;
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
-  } catch(err) {
-    alert('Gagal compress: ' + err)
-  }
-} // <-- TAMBAH KURUNG TUTUP INI
-
+  } catch(err) { alert('Gagal compress: ' + err) }
+}
 document.getElementById('uploadCover').onchange = async (e) => {
-  if(!userLogin) return;
-  const file = e.target.files[0];
-  if(!file) return;
-
+  if(!userLogin) return; const file = e.target.files[0]; if(!file) return;
   try {
     alert('Lagi compress cover...')
     const compressedFile = await compressImage(file, 1200)
-
-    const timestamp = Date.now(); // biar ga ke-cache
-    const path = `${userLogin.id}/cover.jpg?v=${timestamp}`; // <-- HAPUS "public/"
-
+    const timestamp = Date.now(); const path = `${userLogin.id}/cover.jpg?v=${timestamp}`;
     const url = await uploadKeStorage(compressedFile, 'covers', path);
     await supabase.from('users').update({cover: url}).eq('id', userLogin.id);
-    document.getElementById('myCover').src = url + '&t=' + timestamp; // <-- TAMBAH &t biar langsung ganti
+    document.getElementById('myCover').src = url + '&t=' + timestamp;
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
-  } catch(err) {
-    alert('Gagal compress: ' + err)
-  }
+  } catch(err) { alert('Gagal compress: ' + err) }
 }
 window.cariTeman = async function(){
   const keyword = document.getElementById('cariTemanInput').value.toLowerCase();
-  if(!keyword) return loadDaftarTeman(); // kalau kosong balikin ke daftar normal
-  
-  const { data: allTeman, error } = await supabase.from('friendships')
-    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- UDAH PAKE VIEW
-    .eq('status','accepted')
-    .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
-  
+  if(!keyword) return loadDaftarTeman();
+  const { data: allTeman, error } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   if(error) { console.log("Error cari teman:", error); return; }
-  
-  const container = document.getElementById('daftarTeman'); 
-  container.innerHTML = '';
-  
-  // filter berdasarkan keyword
-  const hasil = allTeman.filter(f => {
-    const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester;
-    return lawan.nama.toLowerCase().includes(keyword); // udah ga perlu cek is_admin lagi
-  });
-
-  if(hasil.length === 0){ 
-    container.innerHTML = '<p>Teman tidak ditemukan</p>'; 
-    return; 
-  }
-
-  // render hasil pencarian
-  hasil.forEach(f => { 
-    const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester; 
-    container.innerHTML += `<div class="card">
-      <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" 
-           class="profil-foto" 
-           style="width:80px;height:80px; cursor:pointer" 
-           onclick="lihatProfilOrang('${lawan.id}')">
-      <h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3>
-      <button class="btn" onclick="bukaChat('${lawan.id}')">💬 CHAT</button> 
-      <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button>
-    </div>` 
-  })
+  const container = document.getElementById('daftarTeman'); container.innerHTML = '';
+  const hasil = allTeman.filter(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; return lawan.nama.toLowerCase().includes(keyword); });
+  if(hasil.length === 0){ container.innerHTML = '<p>Teman tidak ditemukan</p>'; return; }
+  hasil.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; container.innerHTML += `<div class="card"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')"><h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3><button class="btn" onclick="bukaChat('${lawan.id}')">💬 CHAT</button> <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button></div>` })
 }
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
-window.daftarUser = async function(event) { 
-  console.log("1. Tombol daftar diklik") // LOG
-  const btn = event.target;
-  btn.disabled = true;
-  btn.innerText = "MENDAFTAR...";
-  const nama = document.getElementById('daftarNama').value; 
-  const email = document.getElementById('daftarEmail').value; 
-  const pass = document.getElementById('daftarPass').value; 
-  
-  if(!nama || !email || !pass) {
-    alert("Isi semua dulu");
-    btn.disabled = false; btn.innerText = "DAFTAR";
-    return;
-  }
-  console.log("2. Validasi lolos", email) // LOG
-
-  const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: pass,
-  }); 
-  
-  console.log("3. Hasil signUp:", data, error) // LOG PENTING
-  
-  if(error) {
-    alert('Gagal Daftar Auth: ' + error.message); 
-    btn.disabled = false; btn.innerText = "DAFTAR";
-    return;
-  } 
-  
-  // INSERT KE USERS
-  console.log("4. Mau insert ke users", data.user.id) // LOG
-  const { error: insertError } = await supabase.from('users').insert({
-    id: data.user.id,
-    nama: nama,
-    email: email,
-    saldo: 0,
-    role: 'user'
-  })
-
-  console.log("5. Hasil insert:", insertError) // LOG PENTING
-
-  btn.disabled = false;
-  btn.innerText = "DAFTAR";
-
+window.daftarUser = async function(event) {
+  const btn = event.target; btn.disabled = true; btn.innerText = "MENDAFTAR...";
+  const nama = document.getElementById('daftarNama').value; const email = document.getElementById('daftarEmail').value; const pass = document.getElementById('daftarPass').value;
+  if(!nama ||!email ||!pass) { alert("Isi semua dulu"); btn.disabled = false; btn.innerText = "DAFTAR"; return; }
+  const { data, error } = await supabase.auth.signUp({ email: email, password: pass, });
+  if(error) { alert('Gagal Daftar Auth: ' + error.message); btn.disabled = false; btn.innerText = "DAFTAR"; return; }
+  const { error: insertError } = await supabase.from('users').insert({ id: data.user.id, nama: nama, email: email, saldo: 0, role: 'user' })
+  btn.disabled = false; btn.innerText = "DAFTAR";
   if(insertError) return alert('Gagal simpan ke users: ' + insertError.message)
-
-  alert('Daftar berhasil!');
-  closeModal('daftar'); 
+  alert('Daftar berhasil!'); closeModal('daftar');
 }
-window.loginUser = async function() { 
-  const email = document.getElementById('loginEmail').value; // <-- TAMBAH INI
-  const pass = document.getElementById('loginPass').value; // <-- TAMBAH INI
-  
-  if(!email || !pass) return alert('Isi email dan password');
-  
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
-  if(error) return alert('Gagal: ' + error.message); 
-  
-  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
-  
-  userLogin = userData; 
-  localStorage.setItem('bitera_user', JSON.stringify(userData));
-  saldoSekarang = userData.saldo || 0; 
-  updateSaldoUI(); 
-  updateUI(true); 
-  loadMyProfile(); 
-  closeModal('login'); 
+window.loginUser = async function() {
+  const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
+  if(!email ||!pass) return alert('Isi email dan password');
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if(error) return alert('Gagal: ' + error.message);
+  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+  userLogin = userData; localStorage.setItem('ainun_user', JSON.stringify(userData));
+  saldoSekarang = userData.saldo || 0; updateSaldoUI(); updateUI(true); loadMyProfile(); closeModal('login');
 }
 function updateUI(isLogin) {
-  const menuBtn = document.getElementById('menuBtn'); 
-  if(isLogin){ 
+  const menuBtn = document.getElementById('menuBtn');
+  if(isLogin){
     menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
-  } else { 
+  }
+  else {
     menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    // TAMBAH INI BIAR DATA HILANG
     document.getElementById('daftarPenyedia').innerHTML = '';
     document.getElementById('daftarJob').innerHTML = '';
     document.getElementById('daftarTeman').innerHTML = '';
@@ -550,10 +351,10 @@ function updateUI(isLogin) {
 
 window.logout = async function() { 
   await supabase.auth.signOut(); 
-  localStorage.removeItem('bitera_user'); // HAPUS CACHE
-  saldoSekarang = 0; // RESET SALDO
-  updateSaldoUI(); // UPDATE UI JADI 0
-  userLogin = null; // RESET USER
+  localStorage.removeItem('ainun_user'); // UDAH GANTI JADI AINUN
+  saldoSekarang = 0;
+  updateSaldoUI();
+  userLogin = null;
   location.reload(); 
 }
 
@@ -579,23 +380,18 @@ window.buatPost = async function() {
   updateSaldoUI(); 
   alert('Job diposting! Saldo baru: ' + saldoBaru);
   closeModal('post'); 
-  loadJobs(); // <-- TUTUP DISINI
-} // <-- TAMBAH KURUNG TUTUP INI
+  loadJobs();
+}
 
-// BARU TARUH loadPenyedia DI LUAR
 async function loadPenyedia(){
   if(!userLogin) return;
   const { data, error } = await supabase.from('users').select('*').neq('id', userLogin.id).not('skill', 'is', null);
   if(error){ console.log(error); return }
   const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
-  
   data.forEach(u=>{ 
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
     container.innerHTML += `<div class="card">
-      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" 
-           class="profil-foto" 
-           style="cursor:pointer; width:100px; height:100px; margin:auto; display:block" 
-           onclick="lihatProfilOrang('${u.id}')">
+      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer; width:100px; height:100px; margin:auto; display:block" onclick="lihatProfilOrang('${u.id}')">
       <h3 style="text-align:center; cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
       <p style="text-align:center">${u.skill||''}</p>
       <p style="text-align:center">⭐ ${rating}</p>
@@ -604,7 +400,7 @@ async function loadPenyedia(){
     </div>`
   })
 }
-// 1. GANTI FUNGSI LOADJOBS BIAR BISA LIHAT PELAMAR
+
 async function loadJobs(){ 
   const { data, error } = await supabase
    .from('jobs')
@@ -618,20 +414,12 @@ async function loadJobs(){
 
   data.forEach(job=>{ 
     let btn = ''; 
-    
-    // 1. Tombol lamar buat orang lain
     if(job.status === 'open' && job.user_id!== userLogin?.id) 
       btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
-    
-    // 2. Tombol lihat pelamar buat yg punya job
     if(job.user_id === userLogin?.id && job.status === 'open') 
       btn = `<button class="btn btn-sukses" onclick="lihatPelamar('${job.id}')">LIHAT PELAMAR</button>`;
-
-    // 3. TOMBOL BARU: VC SELESAI. Muncul buat pemberi DAN pekerja
     if(job.status === 'dikerjakan' && (job.user_id === userLogin?.id || job.diambil_oleh === userLogin?.id)) 
       btn = `<button class="btn btn-sukses" onclick="selesaiKerja('${job.id}')">✅ VC SELESAI & KIRIM BUKTI</button>`;
-    
-    // 4. Tombol konfirmasi buat pemberi job
     if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
       btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
 
@@ -646,7 +434,6 @@ async function loadJobs(){
   }) 
 }
 
-// 2. GANTI AMBILJOB JADI MASUK KE TABEL LAMARAN
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
     job_id: jobId, pelamar_id: userLogin.id, status: 'menunggu'
@@ -656,13 +443,9 @@ window.ambilJob = async function(jobId){
   loadJobs();
 }
 
-// 3. FUNGSI BARU: LIHAT DAFTAR PELAMAR BUAT ORG A
 window.lihatPelamar = async function(jobId){
-  const { data: pelamar } = await supabase.from('job_applications')
-    .select('*, users:users!pelamar_id(*)').eq('job_id', jobId).eq('status','menunggu'); //
-  
+  const { data: pelamar } = await supabase.from('job_applications').select('*, users:users!pelamar_id(*)').eq('job_id', jobId).eq('status','menunggu');
   let html = `<button class="btn btn-batal" onclick="loadJobs()">⬅️ KEMBALI KE LOWONGAN</button><h3>Daftar Pelamar</h3>`;
-  
   if(!pelamar || pelamar.length === 0) {
     html += `<p class="card">Belum ada yg lamar job ini</p>`;
   } else {
@@ -670,9 +453,7 @@ window.lihatPelamar = async function(jobId){
       const wa = p.users.no_wa || '';
       html += `<div class="card">
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px">
-          <img src="${p.users.foto || 'https://ui-avatars.com/api/?name='+p.users.nama}" 
-               style="width:60px;height:60px;border-radius:50%;cursor:pointer" 
-               onclick="lihatProfilOrang('${p.users.id}')">
+          <img src="${p.users.foto || 'https://ui-avatars.com/api/?name='+p.users.nama}" style="width:60px;height:60px;border-radius:50%;cursor:pointer" onclick="lihatProfilOrang('${p.users.id}')">
           <div>
             <h3 style="cursor:pointer; color:var(--accent); margin:0" onclick="lihatProfilOrang('${p.users.id}')">${p.users.nama}</h3>
             <p style="margin:5px 0">⭐ ${p.users.jumlah_rating > 0 ? (p.users.total_rating/p.users.jumlah_rating).toFixed(1) : '0.0'}</p>
@@ -689,7 +470,7 @@ window.lihatPelamar = async function(jobId){
   }
   document.getElementById('daftarJob').innerHTML = html;
 }
-// 4. FUNGSI BARU: A PILIH 1 PEKERJA
+
 window.pilihPekerja = async function(jobId, pelamarId){
   const { error } = await supabase.from('jobs').update({
     status: 'dikerjakan', diambil_oleh: pelamarId
@@ -699,14 +480,13 @@ window.pilihPekerja = async function(jobId, pelamarId){
   alert("Pekerja berhasil dipilih");
   loadJobs();
 }
-// 5. FUNGSI BARU: PEKERJA KLIK SELESAI
+
 window.selesaiKerja = async function(jobId){
   jobSelesaiId = jobId;
   document.getElementById('previewBukti').style.display = 'none';
   document.getElementById('inputBukti').value = '';
   openModal('selesaiModal');
 }
-
 
 window.previewBukti = function(e){
   const file = e.target.files[0];
@@ -722,22 +502,17 @@ window.previewBukti = function(e){
 window.kirimBukti = async function(){
   const file = document.getElementById('inputBukti').files[0];
   if(!file) return alert("Upload bukti dulu");
-
   try {
     alert('Lagi compress bukti...');
-    const compressedFile = await compressImage(file, 1000); // 1000px biar detail kerjaan keliatan
-
+    const compressedFile = await compressImage(file, 1000);
     const filePath = `${jobSelesaiId}/${userLogin.id}-${Date.now()}.jpg`;
-    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { upsert: true }); // <-- PAKE compressedFile
+    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { upsert: true });
     if(upErr) return alert('Gagal upload: ' + upErr.message);
-
-    const { data } = await supabase.storage.from('bukti-job').getPublicUrl(filePath); // TAMBAH AWAIT
-
+    const { data } = await supabase.storage.from('bukti-job').getPublicUrl(filePath);
     const { error } = await supabase.from('jobs').update({
       status: 'menunggu_konfirmasi', bukti_url: data.publicUrl
     }).eq('id', jobSelesaiId);
     if(error) return alert(error.message);
-
     alert("Bukti terkirim! Ukuran: " + (compressedFile.size/1024).toFixed(0) + "KB");
     closeModal('selesaiModal');
     loadJobs();
@@ -746,20 +521,15 @@ window.kirimBukti = async function(){
   }
 }
 
-
-// 6. FUNGSI BARU: A KONFIRMASI + KASIH RATING
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
   if(!job.bukti_url) return alert("Bukti belum diupload pekerja");
-
   pekerjaRatingId = pekerjaId;
   ratingJobId = jobId;
   skorRating = 0;
-
   openModal('ratingModal');
   
   const textRating = ['','Sangat Jelek','Jelek','Cukup','Bagus','Sangat Bagus'];
-  
   document.getElementById('ratingJobJudul').innerHTML = `
     <img src="${job.bukti_url}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
     <p style="text-align:center; font-weight:bold; margin-bottom:10px">Beri rating untuk pekerja</p>
@@ -770,63 +540,42 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
       <div class="bintang-text" id="bintangText">Klik bintang untuk memberi rating</div>
     </div>
   `;
-  
-  document.getElementById('bintangWrap').innerHTML = ''; // hapus tombol kirim
-
+  document.getElementById('bintangWrap').innerHTML = '';
   const bintangEls = document.querySelectorAll('#bintangContainer .bintang');
   const bintangText = document.getElementById('bintangText');
-
-  // Event hover + klik
   bintangEls.forEach(bintang => {
     bintang.addEventListener('mouseenter', function() {
       const val = parseInt(this.dataset.star);
-      bintangEls.forEach(b => {
-        b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd';
-      })
+      bintangEls.forEach(b => { b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd'; })
       bintangText.innerText = textRating[val];
     })
-    
-    // KLIK LANGSUNG KIRIM
     bintang.addEventListener('click', async function() {
       skorRating = parseInt(this.dataset.star);
       bintangText.innerText = 'Mengirim rating...';
       await kirimRating(); 
     })
   })
-
   document.getElementById('bintangContainer').addEventListener('mouseleave', function(){
     bintangEls.forEach(b => { b.style.color = '#ddd' })
     bintangText.innerText = 'Klik bintang untuk memberi rating';
   })
 }
 
-// 7. KIRIM RATING - VERSI BARU WALLET + LEDGER
-// 7. KIRIM RATING - VERSI FINAL
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
   try {
     const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
     const { data: pekerja } = await supabase.from('users').select('saldo, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
     const { data: wallet } = await supabase.from('wallet').select('saldo').eq('id', 1).single();
-
     if(!wallet) throw new Error("Tabel wallet belum ada. Jalankan SQL: insert into wallet (id, saldo) values (1,0)");
-
     const total = job.harga; 
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
-    // HAPUS CEK SALDO PEMBERI. KARENA UDAH KEPOTONG PAS POST
-
-    // 1. TAMBAH KE PEKERJA
     await supabase.from('users').update({ 
       saldo: pekerja.saldo + pekerjaDapat, 
       total_rating: pekerja.total_rating + skorRating, 
       jumlah_rating: pekerja.jumlah_rating + 1 
     }).eq('id', pekerjaRatingId);
-
-    // 2. HAPUS BARIS INI. JANGAN POTONG LAGI DARI PEMBERI
-    // await supabase.from('users').update({ saldo: pemberi.saldo - total }).eq('id', job.user_id); <-- HAPUS INI
-
-    // 3. TAMBAH KE WALLET ADMIN
     await supabase.from('wallet').update({ saldo: wallet.saldo + adminCut }).eq('id', 1);
     await supabase.from('wallet_sistem').insert({ 
       dari_user_id: job.user_id, 
@@ -836,29 +585,27 @@ window.kirimRating = async function(){
       relasi_id: ratingJobId 
     });
     await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
-
     closeModal('ratingModal');
     alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin`);
     loadJobs();
     loadMyProfile();
-    
   } catch(err) {
     console.error(err);
     alert('Gagal kirim rating: ' + err.message);
   }
 }
-// FIX BUG SUARA NOTIF
+
 function subscribeRealtime(convId){
   if(channelChat) supabase.removeChannel(channelChat);
   channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
     if(payload.new.sender_id!== userLogin.id){
       jumlahNotifChat++; updateBadgeChat(); 
-      
     }
     if(payload.new.conversation_id === convAktif) loadPesan();
     loadDaftarChat();
   }).subscribe();
 }
+
 async function loadVideos(){ 
   const { data } = await supabase.from('videos').select('*, users:users!user_id(nama)').order('created_at', {ascending:false});
   const container = document.getElementById('daftarVideo'); container.innerHTML = '';
@@ -871,154 +618,14 @@ async function loadVideos(){
     </div>`
   })
 }
-async function loadMarket(){ 
-  switchTabMarket('tabIklan', document.querySelector('.tab-btn')); // auto buka tab 1
-}
-// ===== SISTEM TAB MARKET =====
-window.switchTabMarket = function(tabId, el){
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  
-  el.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-
-  if(tabId === 'tabIklan') loadIklan();
-  if(tabId === 'tabDikerjakan') loadDikerjakan();
-}
-
-async function loadIklan(){
-  if(!userLogin) return;
-  const { data } = await supabase.from('market_services').select('*, users:users!user_id(nama,foto)').eq('status','tersedia').order('created_at', {ascending:false});
-  const container = document.getElementById('daftarIklan'); container.innerHTML = '';
-  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada iklan</p>';
-
-  data.forEach(i=>{
-    let btn = '';
-    if(i.user_id!== userLogin.id) btn = `<button class="btn btn-sukses" onclick="ambilIklan('${i.id}')">AMBIL JOB</button>`;
-
-    const img = i.foto_url? `<img src="${i.foto_url}" class="card-iklan-img">` : ''; // KALAU ADA FOTO TAMPILIN
-
-    container.innerHTML += `<div class="card">
-      ${img}
-      <h3>${i.judul}</h3><p>${i.deskripsi}</p>
-      <p><b>Harga: ${i.harga} Koin</b></p>
-      <p>Oleh: ${i.users.nama}</p>
-      <a href="https://wa.me/${i.no_wa}" target="_blank" class="btn" style="background:#25D366">📱 CHAT</a>${btn}
-    </div>`
-  })
-}
-
-async function loadDikerjakan(){
-  if(!userLogin) return;
-  const { data } = await supabase.from('market_orders').select('*, market_services:market_services!service_id(*), pemberi:users!pemberi_id(nama)').eq('pekerja_id', userLogin.id).eq('status','dikerjakan');
-  const container = document.getElementById('daftarDikerjakan'); container.innerHTML = '';
-  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada job yg dikerjakan</p>';
-  
-  data.forEach(o=>{
-    container.innerHTML += `<div class="card">
-      <h3>${o.market_services.judul}</h3><p>${o.market_services.deskripsi}</p>
-      <p><b>Harga: ${o.market_services.harga} Koin</b></p>
-      <p>Pemberi: ${o.pemberi.nama}</p>
-      <button class="btn btn-sukses" onclick="selesaiMarket('${o.id}')">✅ SELESAI & KIRIM BUKTI</button>
-    </div>`
-  })
-}
-
-window.postIklan = async function(){
-  if(!userLogin) return alert("Login dulu"); 
-  const judul = document.getElementById('judulIklan').value; 
-  const deskripsi = document.getElementById('deskripsiIklan').value; 
-  const harga = parseInt(document.getElementById('hargaIklan').value); 
-  const noWa = document.getElementById('noWaIklan').value; 
-  if(!judul ||!harga) return alert("Isi semua");
-  
-  const { error } = await supabase.from('market_services').insert({
-    user_id: userLogin.id, judul, deskripsi, harga, no_wa: noWa, status: 'tersedia'
-  });
-  if(error) return alert(error.message);
-  alert('Iklan diposting!'); 
-  loadIklan();
-}
-
-win// PREVIEW FOTO IKLAN
-window.previewFotoIklan = function(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('previewFotoIklan').src = e.target.result;
-    document.getElementById('previewFotoIklan').style.display = 'block';
-  }
-  reader.readAsDataURL(file);
-}
-
-// GANTI FULL FUNGSI postIklan JADI INI
-window.postIklan = async function(){
-  if(!userLogin) return alert("Login dulu");
-  const judul = document.getElementById('judulIklan').value;
-  const deskripsi = document.getElementById('deskripsiIklan').value;
-  const harga = parseInt(document.getElementById('hargaIklan').value);
-  const noWa = document.getElementById('noWaIklan').value;
-  const file = document.getElementById('inputFotoIklan').files[0];
-  if(!judul ||!harga) return alert("Judul dan Harga wajib");
-
-  let fotoUrl = null;
-  // KALAU ADA FOTO DIUPLOAD
-  if(file){
-    alert('Lagi compress foto...');
-    const compressedFile = await compressImage(file, 1000); // pake fungsi compress kamu yg udah ada
-
-    const filePath = `iklan/${userLogin.id}-${Date.now()}.jpg`;
-    const { error: upErr } = await supabase.storage.from('foto-iklan').upload(filePath, compressedFile, { upsert: true });
-    if(upErr) return alert('Gagal upload foto: ' + upErr.message);
-
-    const { data } = await supabase.storage.from('foto-iklan').getPublicUrl(filePath);
-    fotoUrl = data.publicUrl;
-  }
-
-  const { error } = await supabase.from('market_services').insert({
-    user_id: userLogin.id,
-    judul,
-    deskripsi,
-    harga,
-    no_wa: noWa,
-    foto_url: fotoUrl, // SIMPAN URL FOTO
-    status: 'tersedia'
-  });
-  if(error) return alert(error.message);
-
-  alert('Iklan diposting!');
-  // RESET FORM
-  document.getElementById('judulIklan').value = '';
-  document.getElementById('deskripsiIklan').value = '';
-  document.getElementById('hargaIklan').value = '';
-  document.getElementById('noWaIklan').value = '';
-  document.getElementById('inputFotoIklan').value = '';
-  document.getElementById('previewFotoIklan').style.display = 'none';
-  loadIklan();
-}
-window.ambilIklan = async function(serviceId){
-  const { error } = await supabase.from('market_orders').insert({
-    service_id: serviceId, pemberi_id: userLogin.id, pekerja_id: null, status: 'menunggu'
-  });
-  if(error) return alert('Gagal ambil');
-  alert("Berhasil mengajukan. Tunggu konfirmasi");
-  loadIklan();
-}
-
-window.selesaiMarket = async function(orderId){
-  alert("Fitur upload bukti market menyusul");
-}
 
 async function loadMyProfile(){ 
   if(!userLogin) return; 
   const {data, error} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
   if(error) { console.log("Error load profil:", error); return; }
-  
   if(data){ 
-    saldoSekarang = data.saldo || 0; // <-- PENTING BUAT SALDO
-    updateSaldoUI(); // <-- UPDATE SALDO DI HOME
-    
+    saldoSekarang = data.saldo || 0;
+    updateSaldoUI();
     document.getElementById('myNama').innerText = data.nama; 
     document.getElementById('mySkill').innerText = data.skill||'-'; 
     document.getElementById('myBio').innerText = data.bio||'-'; 
@@ -1040,35 +647,27 @@ async function loadMyProfile(){
     loadTemanDiProfil(); 
   } 
 }
+
 async function loadTemanDiProfil(){ 
-  const { data } = await supabase.from('friendships')
-    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
-    .eq('status','accepted')
-    .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
-    
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
   const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; 
   let jumlah = 0; 
   if(data && data.length > 0){ 
     data.forEach(f => { 
       const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
       jumlah++; 
-      container.innerHTML += `<div class="teman-item">
-        <img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" onclick="lihatProfilOrang('${lawan.id}')">
-        <p style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</p>
-      </div>` 
+      container.innerHTML += `<div class="teman-item"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" onclick="lihatProfilOrang('${lawan.id}')"><p style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</p></div>` 
     }) 
   } else { container.innerHTML = '<p>Belum ada teman</p>' }
   document.getElementById('myJumlahTeman').innerText = `${jumlah} Teman`;
   document.getElementById('myJumlahTeman2').innerText = jumlah;
 }
+
 window.lihatProfilOrang = async function(idOrang){
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === idOrang) return showPage('myProfilePage'); 
-  
   const {data} = await supabase.from('users').select('*').eq('id', idOrang).single();
   if(!data) return alert("Profil tidak ditemukan");
-
-  // BIKIN HALAMAN KALO BELUM ADA
   let profilOrangPage = document.getElementById('profilOrangPage');
   if(!profilOrangPage){
     profilOrangPage = document.createElement('div');
@@ -1081,10 +680,7 @@ window.lihatProfilOrang = async function(idOrang){
         <img id="orangCover" src="" class="profil-cover">
         <div class="profil-info">
           <img id="orangFoto" src="" class="profil-foto">
-          <div>
-            <h2 id="orangNama">Nama</h2>
-            <p style="color:gray">📍 Status: <span style="color:#27AE60; font-weight:bold">Aktif</span></p>
-          </div>
+          <div><h2 id="orangNama">Nama</h2><p style="color:gray">📍 Status: <span style="color:#27AE60; font-weight:bold">Aktif</span></p></div>
         </div>
         <div class="profil-detail">
           <div class="profil-detail-item"><b>📅 Tanggal Lahir:</b> <span id="orangTgl">-</span></div>
@@ -1103,8 +699,6 @@ window.lihatProfilOrang = async function(idOrang){
     `;
     document.querySelector('.main').appendChild(profilOrangPage);
   }
-  
-  // ISI DATA
   document.getElementById('orangNama').innerText = data.nama;
   document.getElementById('orangSkill').innerText = data.skill||'-';
   document.getElementById('orangBio').innerText = data.bio||'-';
@@ -1116,43 +710,34 @@ window.lihatProfilOrang = async function(idOrang){
   document.getElementById('orangYoutube').innerText = data.youtube||'-';
   const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0;
   document.getElementById('orangRating').innerText = `⭐ ${rating}`;
-  
   document.getElementById('btnChatOrang').onclick = () => bukaChat(data.id);
   document.getElementById('btnTemanOrang').onclick = () => kirimRequest(data.id);
-  
- 
-//  
-showPage('profilOrangPage'); //
-
+  showPage('profilOrangPage');
 }
- window.showPage = function(pageId, el){
-    document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-    ['homePage','jobsPage','penyediaPage','videosPage','marketPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
-        const page = document.getElementById(id);
-        if(page) page.style.display='none';
-    }); 
-    
-    document.getElementById(pageId).style.display='block';
-    if(el) el.classList.add('active');
-    
-    if(pageId==='jobsPage') loadJobs();
-    if(pageId==='penyediaPage') loadPenyedia();
-    if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); } // <-- PASTIIN ADA INI
-    if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
-    if(pageId==='videosPage') loadVideos();
-    if(pageId==='marketPage') loadMarket();
-    if(pageId==='chatPage') { loadDaftarChat(); }
-   }
+
+window.showPage = function(pageId, el){
+  document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
+    const page = document.getElementById(id);
+    if(page) page.style.display='none';
+  }); 
+  document.getElementById(pageId).style.display='block';
+  if(el) el.classList.add('active');
+  if(pageId==='jobsPage') loadJobs();
+  if(pageId==='penyediaPage') loadPenyedia();
+  if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
+  if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
+  if(pageId==='videosPage') loadVideos();
+  if(pageId==='chatPage') { loadDaftarChat(); }
+}
+
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
-  const { data } = await supabase.from('users').select('*').not('skill', 'is', null); // <-- PAKE VIEW
+  const { data } = await supabase.from('users').select('*').not('skill', 'is', null);
   const hasil = data.filter(u => (u.nama.toLowerCase().includes(keyword) || (u.skill && u.skill.toLowerCase().includes(keyword))) && userLogin && u.id !== userLogin.id);
-  // <-- TAMBAH && u.id !== ADMIN_UUIDa
-
   const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
   if(hasil.length === 0){ container.innerHTML = '<p>Penyedia tidak ditemukan</p>'; return; }
-
   hasil.forEach(u=>{ 
     const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
     container.innerHTML += `<div class="card">
@@ -1164,12 +749,10 @@ window.cariPenyedia = async function(){
     </div>`
   })
 }
-window.saveProfile = async function(event){ // <-- TAMBAH event
-  if(!userLogin) return alert("Login dulu");
-  const btn = event.target;
-  btn.disabled = true;
-  btn.innerText = "MENYIMPAN...";
 
+window.saveProfile = async function(event){
+  if(!userLogin) return alert("Login dulu");
+  const btn = event.target; btn.disabled = true; btn.innerText = "MENYIMPAN...";
   const updateData = {
     nama: document.getElementById('editNama').value,
     skill: document.getElementById('editSkill').value,
@@ -1178,52 +761,33 @@ window.saveProfile = async function(event){ // <-- TAMBAH event
     tanggal_lahir: document.getElementById('editTgl').value,
     sekolah: document.getElementById('editSekolah').value,
     youtube: document.getElementById('editYoutube').value
-    // SALDO DAN RATING GA ADA DISINI
   }
-
-  const { error } = await supabase
-   .from('users') // <-- GANTI KE SINI
-   .update(updateData)
-   .eq('id', userLogin.id)
-
-  btn.disabled = false;
-  btn.innerText = "SIMPAN";
+  const { error } = await supabase.from('users').update(updateData).eq('id', userLogin.id)
+  btn.disabled = false; btn.innerText = "SIMPAN";
   if(error) return alert('Gagal simpan: ' + error.message);
-
-  closeModal('editProfile');
-  loadMyProfile();
-  alert('Profil berhasil disimpan!');
+  closeModal('editProfile'); loadMyProfile(); alert('Profil berhasil disimpan!');
 }
 
-// ========== SISTEM CHAT 100% ==========
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
-
-  const { data: users } = await supabase.from('users').select('nama,foto').eq('id', lawanId).single(); // <-- GANTI KE VIEW
+  const { data: users } = await supabase.from('users').select('nama,foto').eq('id', lawanId).single();
   document.getElementById('chatHeader').innerHTML = `<img src="${users.foto||'https://ui-avatars.com/api/?name='+users.nama}" style="width:35px;height:35px;border-radius:50%;vertical-align:middle;margin-right:10px">${users.nama}`
-
   let { data: conv } = await supabase.from('conversations').select('id').or(`and(user1_id.eq.${userLogin.id},user2_id.eq.${lawanId}),and(user1_id.eq.${lawanId},user2_id.eq.${userLogin.id})`).maybeSingle();
   if(!conv) { const { data: newConv } = await supabase.from('conversations').insert({ user1_id: userLogin.id, user2_id: lawanId }).select().single(); conv = newConv; }
   convAktif = conv.id; showPage('chatPage'); loadPesan(); subscribeRealtime(conv.id);
 }
+
 async function loadDaftarChat() {
   if(!userLogin) return;
-  const { data } = await supabase.from('friendships')
-    .select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)') // <-- GANTI KE VIEW
-    .eq('status','accepted')
-    .or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+  const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   const list = document.getElementById('daftarChat'); list.innerHTML = '<h3>Daftar Chat</h3>';
   if(!data || data.length === 0){ list.innerHTML += '<p>Belum ada teman</p>'; return; }
-  
-  data.forEach(f => { 
-    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
-    list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}"
-      onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` 
-  })
+  data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` })
 }
+
 async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
@@ -1243,42 +807,28 @@ window.kirimPesan = async function() {
   input.value = '';
 }
 
-function subscribeRealtime(convId){
-  if(channelChat) supabase.removeChannel(channelChat);
-  channelChat = supabase.channel(`chat-${convId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter:`conversation_id=eq.${convId}` }, payload => {
-    if(payload.new.sender_id!== userLogin.id){
-      jumlahNotifChat++; updateBadgeChat();
-    }
-    if(payload.new.conversation_id === convAktif) loadPesan();
-    loadDaftarChat();
-  }).subscribe();
-}
-// ========== END SISTEM CHAT ==========
-
 supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('bitera_user');
+  const savedUser = localStorage.getItem('ainun_user'); // UDAH GANTI JADI AINUN
   if(session && savedUser){
     try {
-      userLogin = JSON.parse(savedUser); // BACA DARI CACHE BIAR GA LEMOT
-      // VALIDASI ULANG KE DB BIAR SALDO PALING BARU
+      userLogin = JSON.parse(savedUser);
       const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
       if(userData){
         userLogin = userData;
-        localStorage.setItem('bitera_user', JSON.stringify(userData)); // UPDATE CACHE
+        localStorage.setItem('ainun_user', JSON.stringify(userData));
       }
     } catch(e) { console.log(e) }
-
     saldoSekarang = userLogin.saldo || 0;
     updateSaldoUI();
     updateUI(true);
     loadMyProfile(); 
   } else {
-    localStorage.removeItem('bitera_user'); // JAGA2 KALAU SESSION MATI
+    localStorage.removeItem('ainun_user');
     updateUI(false); 
   }
 })
 
-}); // 
+}); 
 </script>
 </body>
 </html>
